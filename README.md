@@ -66,6 +66,8 @@ Les cartes peuvent être sauvegardées dans Supabase. Les politiques Row Level S
 3. Dans Supabase : exécuter `supabase/schema.sql`, activer Email (Authentication → Providers) et ajouter `https://kharait.vercel.app` dans Authentication → URL Configuration.
 4. Créer un compte, coller sa propre clé API et générer une carte avec un PDF léger (≤ 3 Mo).
 
+**Gros PDF avec Gemini :** au-delà de 2,3 Mo, le navigateur téléverse le PDF d'origine (jusqu'à 50 Mo) directement vers l'API Fichiers de Gemini avec la clé de l'utilisateur, sans passer par Vercel ; le fichier est supprimé chez Google à la fin de la génération (sinon après 48 h). Si l'envoi direct échoue, le PDF est converti en images compressées.
+
 **Limites :** une requête vers l'API ne doit pas dépasser ~4 Mo (limite Vercel). Les PPTX/DOCX sont lus dans le navigateur (texte, notes, SmartArt) : seul le texte et au plus 8 images compressées sont envoyés, quelle que soit la taille du fichier. Le nom de fichier de type `NE_AR_N3_P2_SEM3_S6` fournit niveau, phase, semaine et séance quand le document ne les contient pas.
 
 **Testé :** la passerelle `/api/ai-generate` (authentification, refus des PDF pour OpenAI/Groq/OpenRouter, limite de débit, clé en en-tête uniquement) avec des fournisseurs simulés. Les appels réels aux cinq fournisseurs restent à valider avec les clés de leurs utilisateurs.

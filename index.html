@@ -364,8 +364,8 @@ if(!files.length&&!$('note').value.trim())return st('ارفع ملفًا واح�
     const res=await Promise.allSettled((sep?files.map(f=>[f]):[files]).map(j=>callG(m,j)));
     const ok=res.filter(r=>r.status==='fulfilled').map(r=>r.value),bad=res.filter(r=>r.status==='rejected').map(r=>r.reason.message);
     if(!ok.length)throw new Error(bad[0]);
-    render(ok);pushHist(ok);if(window.__pdfNote){$('tag').textContent+=' — '+window.__pdfNote;window.__pdfNote=''}if(bad.length)$('tag').textContent+=' — '+tr('تعذّر تحليل ملف:')+' '+bad[0];
-  }catch(e){st(tr('تعذّر التوليد:')+' '+e.message,1)}finally{$('bGo').disabled=false}
+    render(ok);pushHist(ok);{const n=[window.__pdfNote,window.__upNote].filter(Boolean).join(' — ');window.__pdfNote=window.__upNote='';if(n)$('tag').textContent+=' — '+n}if(bad.length)$('tag').textContent+=' — '+tr('تعذّر تحليل ملف:')+' '+bad[0];
+  }catch(e){st(tr('تعذّر التوليد:')+' '+e.message,1)}finally{$('bGo').disabled=false;cleanupGeminiFiles()}
 }
 function parse(t){t=t.trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();const a=t.indexOf('{'),b=t.lastIndexOf('}');return JSON.parse(t.slice(a,b+1))}
 function parseAny(t){t=t.trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();return t[0]==='['?JSON.parse(t):parse(t)}
@@ -704,6 +704,9 @@ async function fileToParts(f,force){
   if(/\.(pptx|docx)$/i.test(f.name)){out.push(...await officeParts(f));return out}
   if(/^text\/|json$/.test(f.type)||/\.(txt|md|json)$/i.test(f.name)){out.push({text:'--- '+f.name+' ---\n'+(await f.text()).slice(0,170000)});return out}
   if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){
+    if(!force&&provider()==='gemini'&&f.size>2.3e6&&f.size<=50e6){
+      try{out.push({fileData:await geminiUpload(f)});return out}
+      catch(e){console.warn('Gemini direct upload failed',e);window.__upNote=fr?'Envoi direct vers Gemini impossible : PDF converti en images.':'تعذّر الرفع المباشر إلى Gemini: حُوِّل الـPDF إلى صور.'}}
     if(!force&&f.size<=2.3e6&&['gemini','anthropic'].includes(provider())){out.push({inlineData:{mimeType:'application/pdf',data:await b64(f)}});return out}
     st(fr?'Compression du PDF en images…':'جارٍ ضغط ملف PDF إلى صور…');
     const r=await pdfToImageParts(f);
@@ -714,6 +717,24 @@ async function buildParts(fs,force){
   const parts=[{text:lvlFix(LANG==='fr'?PROMPT_FR:PROMPT_AR)+($('note').value.trim()?(LANG==='fr'?"\nRemarques de l'utilisateur : ":'\nملاحظات المستخدم: ')+$('note').value.trim():'')}];
   for(const f of fs)parts.push(...await fileToParts(f,force));
   return parts}
+
+/* ===== Gemini Files API: the browser uploads big PDFs straight to Google with the user's own key ===== */
+const GF='https://generativelanguage.googleapis.com';
+const gKey=()=>aiKeyMemory||$('aiKey').value.trim();
+async function geminiUpload(f){
+  const key=gKey(),fr=LANG==='fr';if(!key)throw new Error('missing key');
+  const start=await fetch(GF+'/upload/v1beta/files',{method:'POST',headers:{'x-goog-api-key':key,'X-Goog-Upload-Protocol':'resumable','X-Goog-Upload-Command':'start','X-Goog-Upload-Header-Content-Length':String(f.size),'X-Goog-Upload-Header-Content-Type':'application/pdf','Content-Type':'application/json'},body:JSON.stringify({file:{display_name:f.name.slice(0,120)}})});
+  if(!start.ok)throw new Error('start '+start.status);
+  const url=start.headers.get('x-goog-upload-url');if(!url||!url.startsWith(GF+'/'))throw new Error('no upload url');
+  let file=await new Promise((ok,no)=>{const x=new XMLHttpRequest();x.open('POST',url);x.setRequestHeader('X-Goog-Upload-Offset','0');x.setRequestHeader('X-Goog-Upload-Command','upload, finalize');
+    x.upload.onprogress=e=>{if(e.lengthComputable)st((fr?'Envoi vers Gemini… ':'جارٍ رفع الملف إلى Gemini… ')+Math.round(e.loaded/e.total*100)+'%')};
+    x.onload=()=>{try{x.status<300?ok(JSON.parse(x.responseText).file):no(new Error('upload '+x.status))}catch(e){no(e)}};x.onerror=()=>no(new Error('network'));x.send(f)});
+  (window.__gfiles=window.__gfiles||[]).push({name:file.name,key});
+  for(let i=0;i<20&&file.state==='PROCESSING';i++){await sleep(1500);const r=await fetch(GF+'/v1beta/'+file.name,{headers:{'x-goog-api-key':key}});if(r.ok)file=await r.json()}
+  if(file.state&&file.state!=='ACTIVE')throw new Error('state '+file.state);
+  if(!/^https:\/\/generativelanguage\.googleapis\.com\/v1beta\/files\//.test(file.uri||''))throw new Error('bad uri');
+  return{mimeType:'application/pdf',fileUri:file.uri}}
+function cleanupGeminiFiles(){const L=window.__gfiles||[];window.__gfiles=[];L.forEach(g=>fetch(GF+'/v1beta/'+g.name,{method:'DELETE',headers:{'x-goog-api-key':g.key}}).catch(()=>{}))}
 </script>
 </body>
 </html>

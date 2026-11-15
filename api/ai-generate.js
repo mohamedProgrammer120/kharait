@@ -17,9 +17,15 @@ function rateLimited(ip) {
   entry.count += 1;
   return entry.count > 12;
 }
+const GEMINI_FILE_URI = /^https:\/\/generativelanguage\.googleapis\.com\/v1beta\/files\/[A-Za-z0-9_-]{1,80}$/;
 function validPart(part) {
   if (!part || typeof part !== "object") return false;
   if (typeof part.text === "string") return part.text.length <= 180_000;
+  if (part.fileData) {
+    const d = part.fileData;
+    return Object.keys(part).length === 1 && Object.keys(d).every(k => k === "mimeType" || k === "fileUri") &&
+      d.mimeType === "application/pdf" && typeof d.fileUri === "string" && GEMINI_FILE_URI.test(d.fileUri);
+  }
   const d = part.inlineData;
   return !!d && typeof d.data === "string" && d.data.length <= 3.2 * 1024 * 1024 &&
     ["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(d.mimeType);
@@ -72,6 +78,7 @@ export default async function handler(req, res) {
     const key = req.headers["x-kharait-provider-key"];
     if (typeof key !== "string" || key.length < 12 || key.length > 500) return json(res, 400, { error: "Clé API personnelle manquante ou invalide." });
     if (!["gemini", "groq", "openrouter", "openai", "anthropic"].includes(provider)) return json(res, 400, { error: "Fournisseur IA non pris en charge." });
+    if (provider !== "gemini" && Array.isArray(parts) && parts.some(p => p && p.fileData)) return json(res, 400, { error: "Les fichiers envoyés directement ne sont pris en charge que par Gemini." });
     if (typeof model !== "string" || !/^[a-zA-Z0-9._:/-]{2,160}$/.test(model)) return json(res, 400, { error: "Identifiant de modèle invalide." });
     if (!Array.isArray(parts) || parts.length < 1 || parts.length > MAX_PARTS || !parts.every(validPart)) return json(res, 400, { error: "Contenu invalide ou trop volumineux." });
 
