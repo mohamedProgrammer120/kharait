@@ -117,7 +117,7 @@ svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height
     <button class="p" id="bOpen"><i>✨</i>توليد خريطة</button>
     <button id="bStr"><i>🧱</i>هيكلة الحصة</button>
     <button id="bLx"><i>🗂</i><span>إخفاء المعلومات الإضافية</span></button>
-    <button id="bPng"><i>🖼</i>صورة PNG</button><button id="bPdf"><i>📄</i>تصدير PDF</button><button id="bHist"><i>🕘</i>السجل</button>
+    <button id="bPng"><i>🖼</i>صورة PNG</button><button id="bPdf"><i>📄</i>تصدير PDF</button><button id="bHist"><i>🕘</i>السجل</button><button id="bCloud"><i>☁️</i>حسابي / مزامنة</button>
     <button id="bPrint"><i>🖨</i>طباعة / PDF</button>
     <button id="bCopy"><i>📋</i>نسخ JSON</button>
     <button id="bJson"><i>⬇</i>تنزيل JSON</button>
@@ -128,6 +128,16 @@ svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height
 <dialog id="dP"><div class="mh"><h2>الطباعة</h2><p>تُضبَّط الخريطة (أو الخريطتان) تلقائيًا في صفحة A4 واحدة · في الأفقي تتجاور الخريطتان: الأولى يمينًا والثانية يسارًا</p></div><div class="m"><label class="sec"><span class="l">🎨 ألوان الطباعة</span><select id="pm"><option value="c">ملوّنة</option><option value="g">رمادية (بدون ألوان)</option><option value="b">أبيض وأسود — توفير الحبر</option></select></label><button type="button" onclick="doPrint('p')">📄 A4 عمودي (Portrait)</button><button type="button" class="s" onclick="doPrint('l')">🖥 A4 أفقي (Landscape)</button></div></dialog><dialog id="dT"><div class="mh"><h2>نموذج الخريطة</h2><p>اختر شكل الخريطة — يُطبَّق على كل الخرائط</p></div><div class="m"><div id="tg"></div><button type="button" onclick="$('dT').close()">إغلاق</button></div></dialog>
 <dialog id="dI"><div class="mh"><h2 id="dIt">تثبيت التطبيق</h2></div><div class="m"><div id="dIb" style="line-height:1.9;font-size:14px"></div><button type="button" onclick="$('dI').close()">حسنًا</button></div></dialog>
 <dialog id="dH"><div class="mh"><h2>سجل الخرائط</h2><p>آخر 10 خرائط مولَّدة في هذا المتصفح</p></div><div class="m"><div id="hb"></div><div class="row"><button type="button" class="s" id="hClr" style="background:#fde7e5;color:#b3261e">مسح السجل</button><button type="button" onclick="$('dH').close()">إغلاق</button></div></div></dialog>
+<dialog id="dCloud"><div class="mh"><h2>حسابي ومزامنة الخرائط</h2><p>سجّل الدخول لحفظ خرائطك في حسابك وفتحها من أجهزة أخرى</p></div><div class="m">
+  <div class="sec"><span class="l">البريد الإلكتروني</span><input id="cloudEmail" type="email" autocomplete="email" placeholder="name@example.com" dir="ltr"></div>
+  <div class="sec"><span class="l">كلمة المرور</span><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="••••••••" dir="ltr"></div>
+  <div id="cloudStatus" style="font-size:12px;color:#6b7690;line-height:1.7">أدخل إعدادات Supabase في الملف supabase-config.js لتفعيل المزامنة.</div>
+  <div class="row"><button id="cloudLogin" type="button">تسجيل الدخول</button><button id="cloudSignup" type="button" class="s" style="background:#e3e8f3;color:#1d2a44">إنشاء حساب</button></div>
+  <div class="row"><button id="cloudSave" type="button">☁️ حفظ الخريطة الحالية</button><button id="cloudLogout" type="button" class="s" style="background:#e3e8f3;color:#1d2a44">تسجيل الخروج</button></div>
+  <div class="row"><b>خرائطي المحفوظة</b><button id="cloudRefresh" type="button" class="s" style="background:#e3e8f3;color:#1d2a44">تحديث</button></div>
+  <div id="cloudList"></div>
+  <button type="button" class="s" onclick="$('dCloud').close()" style="background:#e3e8f3;color:#1d2a44">إغلاق</button>
+</div></dialog>
 <div id="stage">
   <div id="tag"></div><br>
   <div id="zw"><div id="zoomer"><div id="map"></div></div></div>
@@ -151,6 +161,8 @@ svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height
   </div>
 </dialog>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const MODELS=['gemini-2.5-flash','gemini-2.5-flash-lite','gemini-2.0-flash'];
@@ -431,6 +443,58 @@ $('bPng').onclick=async()=>{
     const base=location.href.split('#')[0].split('?')[0],mf={name:'مولّد الخرائط الذهنية للحصة',short_name:'خرائط الحصة',start_url:base,scope:base.replace(/[^/]*$/,''),display:'standalone',background_color:'#e9edf5',theme_color:'#14264a',lang:'ar',dir:'rtl',icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any'}]};
     const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/manifest+json'}));h.appendChild(l)}
 }catch(_){}})();
+
+
+/* ===== optional Supabase account and cross-device map storage ===== */
+let cloudClient=null,cloudUser=null;
+const cloudMessage=(message,error=false)=>{const el=$('cloudStatus');if(el){el.textContent=message;el.style.color=error?'#b3261e':'#2e7d52'}};
+function initCloud(){
+  const cfg=window.KHARAIT_SUPABASE_CONFIG||{};
+  if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient){
+    cloudMessage('أضف رابط Supabase والمفتاح العام anon في supabase-config.js ثم أعد تحميل الصفحة.',true);
+    $('cloudLogin').disabled=$('cloudSignup').disabled=$('cloudSave').disabled=$('cloudRefresh').disabled=true;
+    return;
+  }
+  cloudClient=window.supabase.createClient(cfg.url,cfg.anonKey);
+  cloudClient.auth.getSession().then(({data})=>{cloudUser=data.session?.user||null;cloudState()});
+  cloudClient.auth.onAuthStateChange((_event,session)=>{cloudUser=session?.user||null;cloudState()});
+}
+function cloudState(){
+  if(!cloudClient)return;
+  if(cloudUser){cloudMessage('متصل بالحساب: '+cloudUser.email);$('cloudEmail').value=cloudUser.email||'';$('cloudPassword').value='';loadCloudMaps()}
+  else{cloudMessage('غير مسجل الدخول. سجّل الدخول أو أنشئ حسابًا.');$('cloudList').innerHTML=''}
+}
+$('bCloud').onclick=()=>{$('dCloud').showModal();if(!cloudClient)initCloud()};
+$('cloudLogin').onclick=async()=>{
+  if(!cloudClient)return;
+  const {error}=await cloudClient.auth.signInWithPassword({email:$('cloudEmail').value.trim(),password:$('cloudPassword').value});
+  cloudMessage(error?.message||'تم تسجيل الدخول.',!!error);
+};
+$('cloudSignup').onclick=async()=>{
+  if(!cloudClient)return;
+  const {data,error}=await cloudClient.auth.signUp({email:$('cloudEmail').value.trim(),password:$('cloudPassword').value});
+  cloudMessage(error?.message||(data.session?'تم إنشاء الحساب وتسجيل الدخول.':'تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيده.'),!!error);
+};
+$('cloudLogout').onclick=async()=>{if(!cloudClient)return;const {error}=await cloudClient.auth.signOut();cloudMessage(error?.message||'تم تسجيل الخروج.',!!error)};
+$('cloudSave').onclick=async()=>{
+  if(!cloudClient||!cloudUser)return cloudMessage('سجّل الدخول أولًا.',true);
+  const title=tx((DATA[0]?.['معلومات_الدرس']||{})['عنوان_الحصة'])||'Carte sans titre';
+  const {error}=await cloudClient.from('lesson_maps').insert({user_id:cloudUser.id,title,content:outLang(DATA.length===1?DATA[0]:DATA)});
+  cloudMessage(error?.message||'تم حفظ الخريطة في حسابك.',!!error);if(!error)loadCloudMaps();
+};
+async function loadCloudMaps(){
+  if(!cloudClient||!cloudUser)return;
+  const {data,error}=await cloudClient.from('lesson_maps').select('id,title,updated_at,content').order('updated_at',{ascending:false}).limit(30);
+  if(error){cloudMessage(error.message,true);return}
+  $('cloudList').innerHTML=data.length?data.map((item,i)=>'<div class="sl" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><div style="min-width:0"><b>'+esc(item.title)+'</b><br><small style="color:#6b7690">'+new Date(item.updated_at).toLocaleString()+'</small></div><button type="button" data-cloud-open="'+esc(item.id)+'">فتح</button></div>').join(''):'<p style="color:#6b7690">لا توجد خرائط محفوظة في السحابة بعد.</p>';
+}
+$('cloudRefresh').onclick=loadCloudMaps;
+$('cloudList').onclick=async e=>{
+  const b=e.target.closest('[data-cloud-open]');if(!b||!cloudClient||!cloudUser)return;
+  const {data,error}=await cloudClient.from('lesson_maps').select('content').eq('id',b.dataset.cloudOpen).single();
+  if(error){cloudMessage(error.message,true);return}
+  $('dCloud').close();render(canon(data.content));
+};
 
 /* ===== history of generated maps ===== */
 const HK='gm_hist';
