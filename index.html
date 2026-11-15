@@ -142,8 +142,8 @@ svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height
     <div class="sec"><div class="l"><i>2</i> النموذج (الجيل الثالث: Flash / Flash-Lite)</div>
       <div class="row"><select id="mdl" dir="ltr"></select><button class="w" id="bRef" type="button" title="جلب النماذج المتاحة لمفتاحك">↻</button></div></div>
     <div class="sec"><div class="l"><i>3</i> ملفات الحصة</div>
-      <div id="dz"><b>📄</b>اسحب الملفات هنا أو اضغط للاختيار<br><small>PDF · صور · نص</small></div>
-      <input id="fi" type="file" multiple accept=".pdf,image/*,.txt,.md,.json" hidden>
+      <div id="dz"><b>📄</b>اسحب الملفات هنا أو اضغط للاختيار<br><small>PDF · PPTX · DOCX · صور · نص · JSON</small></div>
+      <input id="fi" type="file" multiple accept=".pdf,image/*,.txt,.md,.json,.pptx,.docx" hidden>
       <div id="fl"></div><label class="chk" id="sepw" hidden><input type="checkbox" id="sep" checked> خريطة مستقلة لكل ملف (ملفان ← خريطتان في ورقة واحدة)</label></div>
     <details><summary>خيارات إضافية</summary><label class="sec" style="margin-top:8px"><span class="l">المستوى الدراسي</span><select id="lvl"><option value="p">ابتدائي</option><option value="c">إعدادي</option><option value="h">ثانوي</option></select></label>
       <textarea id="note" rows="2" placeholder="ملاحظات (مثل: القسم المشترك مستويان 1 و2)"></textarea>
@@ -176,7 +176,7 @@ const FR={
 'التثبيت يحتاج رابطًا https':"L'installation nécessite un lien https",'المتصفحات لا تثبّت التطبيقات من ملف محلي. ارفع ملفات التطبيق (index.html وmanifest.webmanifest وsw.js والأيقونتين) إلى أي استضافة ثابتة مجانية مثل Netlify Drop أو GitHub Pages أو Cloudflare Pages، ثم افتح الرابط واضغط «تثبيت التطبيق» من الهاتف أو الحاسوب.':"Les navigateurs n'installent pas une appli depuis un fichier local. Déposez les fichiers (index.html, manifest.webmanifest, sw.js et les deux icônes) sur un hébergement statique gratuit (Netlify Drop, GitHub Pages ou Cloudflare Pages), ouvrez le lien puis cliquez sur « Installer l'appli » depuis le téléphone ou l'ordinateur.",
 'التثبيت على آيفون / آيباد':"Installation sur iPhone / iPad",'في Safari: اضغط زر <b>المشاركة</b> ⬆ ثم <b>إضافة إلى الشاشة الرئيسية</b>.':"Dans Safari : touchez <b>Partager</b> ⬆ puis <b>Sur l'écran d'accueil</b>.",'التثبيت من قائمة المتصفح':'Installation depuis le menu du navigateur','<b>أندرويد (Chrome):</b> القائمة ⋮ ثم «تثبيت التطبيق».<br><b>ويندوز (Chrome / Edge):</b> أيقونة التثبيت في شريط العنوان، أو القائمة ← «تثبيت».<br>إن لم يظهر الخيار فتأكد أنك تفتح الرابط عبر https.':"<b>Android (Chrome) :</b> menu ⋮ puis « Installer l'application ».<br><b>Windows (Chrome / Edge) :</b> icône d'installation dans la barre d'adresse, ou menu → « Installer ».<br>Si l'option n'apparaît pas, vérifiez que le lien est en https.",
 'تعذّر تحميل مكتبة التصدير (تحقق من الاتصال)':"Impossible de charger la bibliothèque d'export (vérifiez la connexion)"};
-Object.assign(FR,{'تصدير PDF':'Export PDF','السجل':'Historique','سجل الخرائط':'Historique des cartes','آخر 10 خرائط مولَّدة في هذا المتصفح':'10 dernières cartes générées dans ce navigateur','مسح السجل':"Effacer l'historique",'المستوى الدراسي':'Cycle scolaire','ابتدائي':'Primaire','إعدادي':'Collège','ثانوي':'Lycée','لا يوجد سجل بعد':"Aucun historique pour l'instant",'فتح':'Ouvrir','حذف':'Supprimer','مسح كل السجل؟':"Effacer tout l'historique ?",'جارٍ إنشاء PDF…':'Création du PDF…','إعادة المحاولة تلقائيًا…':'Nouvelle tentative automatique…','⚠ يُحفظ المفتاح كنص عادي في هذا المتصفح. لا تفعّل التذكّر على جهاز مشترك، ويُستحسن تقييده بنطاق موقعك (HTTP referrer) من لوحة Google AI Studio.':"⚠ La clé est enregistrée en clair dans ce navigateur. Ne l'activez pas sur un appareil partagé et limitez-la à votre domaine (HTTP referrer) dans Google AI Studio."});
+Object.assign(FR,{'PDF · PPTX · DOCX · صور · نص · JSON':'PDF · PPTX · DOCX · images · texte · JSON','لا نص قابل للقراءة في هذا الملف. إن كان صورًا فحوّله إلى PDF:':'Aucun texte lisible dans ce fichier. S\'il ne contient que des images, convertissez-le en PDF :','ملف JSON غير صالح:':'Fichier JSON invalide :','تصدير PDF':'Export PDF','السجل':'Historique','سجل الخرائط':'Historique des cartes','آخر 10 خرائط مولَّدة في هذا المتصفح':'10 dernières cartes générées dans ce navigateur','مسح السجل':"Effacer l'historique",'المستوى الدراسي':'Cycle scolaire','ابتدائي':'Primaire','إعدادي':'Collège','ثانوي':'Lycée','لا يوجد سجل بعد':"Aucun historique pour l'instant",'فتح':'Ouvrir','حذف':'Supprimer','مسح كل السجل؟':"Effacer tout l'historique ?",'جارٍ إنشاء PDF…':'Création du PDF…','إعادة المحاولة تلقائيًا…':'Nouvelle tentative automatique…','⚠ يُحفظ المفتاح كنص عادي في هذا المتصفح. لا تفعّل التذكّر على جهاز مشترك، ويُستحسن تقييده بنطاق موقعك (HTTP referrer) من لوحة Google AI Studio.':"⚠ La clé est enregistrée en clair dans ce navigateur. Ne l'activez pas sur un appareil partagé et limitez-la à votre domaine (HTTP referrer) dans Google AI Studio."});
 const tr=s=>LANG==='fr'&&FR[s]!=null?FR[s]:s;
 const FRK={informations_lecon:'معلومات_الدرس',structure_seance:'هيكلة_الحصة',objectifs_seance:'أهداف_الحصة',moyens_didactiques:'الوسائل_الديداكتيكية',fiche_detaillee:'جذاذة_مفصلة',lexique_seance:'معلومات_إضافية',matiere:'المادة',niveau:'المستوى',periode:'الفترة',unite:'الوحدة',semaine:'الأسبوع',seance:'الحصة',jour:'اليوم',titre_seance:'عنوان_الحصة',duree_totale:'المدة_الإجمالية',donnees_supplementaires:'بيانات_إضافية',nom_fichier:'اسم_الملف',source_information:'مصدر_المعلومة',etape:'المرحلة',duree:'المدة',sous_activites:'الأنشطة_الفرعية',activite:'النشاط',formule_introductive:'الصيغة_الافتتاحية',objectifs:'الأهداف',moyens:'الوسائل',moyen:'الوسيلة',usage:'الاستعمال',activites:'الأنشطة',titre_activite:'عنوان_النشاط',deroulement:'سير_النشاط',support_activite:'مجال_النشاط',mots_outils:'كلمات_بصرية',strategies:'استراتيجيات',regles:'قواعد',informations_complementaires:'معلومات_إضافية'};
 const ARK=Object.fromEntries(Object.entries(FRK).map(([a,b])=>[b,a]));
@@ -262,6 +262,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function callG(k,m,fs){
   const parts=[{text:lvlFix(LANG==='fr'?PROMPT_FR:PROMPT_AR)+($('note').value.trim()?(LANG==='fr'?"\nRemarques de l'utilisateur : ":'\nملاحظات المستخدم: ')+$('note').value.trim():'')}];
   for(const f of fs){
+    if(/\.(pptx|docx)$/i.test(f.name)){parts.push({text:'--- '+f.name+' ---\n'+await officeText(f)});continue}
     if(/^text\/|json$/.test(f.type)||/\.(txt|md|json)$/i.test(f.name))parts.push({text:'--- '+f.name+' ---\n'+await f.text()});
     else parts.push({inlineData:{mimeType:f.type||(/\.pdf$/i.test(f.name)?'application/pdf':'image/jpeg'),data:await b64(f)}});
   }
@@ -282,8 +283,9 @@ async function callG(k,m,fs){
 async function generate(){
   const k=$('key').value.trim(),m=$('mdl').value,pasted=$('js').value.trim();
   if(pasted){try{return render(canon(parseAny(pasted)))}catch(e){return st(tr('JSON غير صالح:')+' '+e.message,1)}}
+  if(files.length&&files.every(f=>/\.json$/i.test(f.name))){try{const out=[];for(const f of files)out.push(...[].concat(canon(parseAny(await f.text()))));if(!out.every(o=>o&&o['معلومات_الدرس']))throw new Error('معلومات_الدرس');files=[];showF();return render(out.slice(0,2))}catch(e){return st(tr('ملف JSON غير صالح:')+' '+e.message,1)}}
   if(!k)return st('أدخل مفتاح Gemini',1);if(!files.length&&!$('note').value.trim())return st('ارفع ملفًا واحدًا على الأقل',1);
-  if(files.reduce((a,f)=>a+f.size,0)>18e6)return st('حجم الملفات يتجاوز 18 م.ب (حد الإرسال المباشر)',1);
+  if(files.filter(f=>!/\.(pptx|docx)$/i.test(f.name)).reduce((a,f)=>a+f.size,0)>18e6)return st('حجم الملفات يتجاوز 18 م.ب (حد الإرسال المباشر)',1);
   const sep=files.length>=2&&$('sep').checked;if(sep&&files.length>2)return st('اختر ملفين فقط، أو ألغِ خيار «خريطة مستقلة لكل ملف»',1);
   if($('rem').checked)ls.set('gm_key',k);else ls.del('gm_key');ls.set('gm_model',m);
   $('bGo').disabled=true;st(tr('جارٍ التحليل بـ')+' '+m+(sep?' '+tr('(ملفان بالتوازي)'):'')+' '+tr('… قد يستغرق دقيقة'));
@@ -319,7 +321,7 @@ function norm(d){d['جذاذة_مفصلة']=arr(d['جذاذة_مفصلة']).filt
 const getp=(o,p)=>p.split('.').reduce((a,k)=>a==null?a:a[k],o);
 function setp(o,p,v){const ks=p.split('.');let c=o;ks.forEach((k,i)=>{if(i===ks.length-1)c[k]=v;else{if(c[k]==null||typeof c[k]!=='object')c[k]=/^\d+$/.test(ks[i+1])?[]:{};c=c[k]}})}
 const mapIdx=el=>[...document.querySelectorAll('.mp')].indexOf(el.closest('.mp'));
-const saveAll=()=>{if(DATA[0]&&!DATA[0].__demo)ls.set('gm_last',JSON.stringify(DATA))};
+const saveAll=()=>{if(DATA[0]&&!DATA[0].__demo){ls.set('gm_last',JSON.stringify(DATA));syncHistSoon()}};
 function mapHtml(d){
   const I=d['معلومات_الدرس'],G=d['أهداف_الحصة'],M=d['الوسائل_الديداكتيكية'],L=d['معلومات_إضافية']||d['معجم_الحصة']||{},S=d['جذاذة_مفصلة'],B=d.__lbl||{};
   const lb=(id,def)=>`<span contenteditable data-l="${id}">${esc(B[id]??def)}</span>`;
@@ -328,7 +330,7 @@ function mapHtml(d){
   const title=tx(I['عنوان_الحصة']);
   const IK=[['المادة','المادة','#2f6fd0'],['المستوى','المستوى','#2e9a5b'],['الوحدة','الوحدة','#e08a1e'],['الأسبوع','الأسبوع','#7b3fb0'],['الحصة','الحصة','#d6336c'],['المدة','المدة_الإجمالية','#12877f']];
   const meta=IK.map(([l,k,c])=>`<div class="ic" style="--k:${c}"><small>${lb('i_'+l,tr(l))}</small><span contenteditable data-p="معلومات_الدرس.${k}" data-ph="—">${esc(tx(I[k])||(k==='المدة_الإجمالية'?tx(I['المدة']):''))}</span></div>`).join('');
-  const card=(s,i,x)=>{const c=COL[i%COL.length],P=`جذاذة_مفصلة.${i}`;return `<div class="card" style="--c:${c};${x||''}"><div class="h"><span class="n">${i+1}</span>${ed(P+'.المرحلة',tx(s['المرحلة']),'اسم المرحلة')}<span class="d">${ed(P+'.المدة',tx(s['المدة']),'مدة')}</span><button class="ctl x" data-act="delStage" data-i="${i}" title="${tr('حذف المرحلة')}">✕</button></div><div class="b">${arr(s['الأنشطة']).map((a,j)=>`<div class="a"><button class="ctl x" data-act="delAct" data-i="${i}" data-j="${j}" title="${tr('حذف النشاط')}">✕</button><b>${ed(`${P}.الأنشطة.${j}.عنوان_النشاط`,tx(a['عنوان_النشاط']),'عنوان النشاط')}</b><ul>${arr(a['سير_النشاط']).map((x,k)=>li(`${P}.الأنشطة.${j}.سير_النشاط.${k}`,x,'خطوة')).join('')}</ul><button class="ctl add sm" data-act="addStep" data-i="${i}" data-j="${j}">${tr('＋ خطوة')}</button></div>`).join('')}<button class="ctl add" data-act="addAct" data-i="${i}">${tr('＋ نشاط')}</button></div></div>`};
+  const card=(s,i,x)=>{const c=COL[i%COL.length],P=`جذاذة_مفصلة.${i}`;return `<div class="card" style="--c:${c};${x||''}"><div class="h"><span class="n">${i+1}</span>${ed(P+'.المرحلة',tx(s['المرحلة']),'اسم المرحلة')}<span class="d">${ed(P+'.المدة',tx(s['المدة']),'مدة')}</span><button class="ctl x" data-act="up" data-i="${i}" title="▲">▲</button><button class="ctl x" data-act="down" data-i="${i}" title="▼">▼</button><button class="ctl x" data-act="delStage" data-i="${i}" title="${tr('حذف المرحلة')}">✕</button></div><div class="b">${arr(s['الأنشطة']).map((a,j)=>`<div class="a"><button class="ctl x" data-act="delAct" data-i="${i}" data-j="${j}" title="${tr('حذف النشاط')}">✕</button><b>${ed(`${P}.الأنشطة.${j}.عنوان_النشاط`,tx(a['عنوان_النشاط']),'عنوان النشاط')}</b><ul>${arr(a['سير_النشاط']).map((x,k)=>li(`${P}.الأنشطة.${j}.سير_النشاط.${k}`,x,'خطوة')).join('')}</ul><button class="ctl add sm" data-act="addStep" data-i="${i}" data-j="${j}">${tr('＋ خطوة')}</button></div>`).join('')}<button class="ctl add" data-act="addAct" data-i="${i}">${tr('＋ نشاط')}</button></div></div>`};
   const isCl=s=>/اختتام|ختام|خاتمة|clôture|cloture|conclusion/i.test(tx(s['المرحلة'])),ci=S.length>1?S.map(isCl).lastIndexOf(true):-1,main=S.map((s,i)=>i).filter(i=>i!==ci),h=Math.ceil(main.length/2),R=main.slice(0,h).map(i=>card(S[i],i)).join(''),Lc=main.slice(h).map(i=>card(S[i],i)).join(''),CL=ci>=0?`<div class="cl">${card(S[ci],ci)}</div>`:'';
   const goals=arr(G['الأهداف']),means=arr(M['الوسائل']);
   const lex=[['كلمات بصرية','كلمات_بصرية'],['استراتيجيات','استراتيجيات'],['قواعد','قواعد']];
@@ -370,6 +372,7 @@ $('map').addEventListener('input',e=>{const t=e.target,mp=t.closest&&t.closest('
 $('map').addEventListener('focusout',e=>{const t=e.target;if(!t.dataset||!t.dataset.li||t.textContent.trim())return;const d=DATA[mapIdx(t)],p=t.dataset.p.split('.'),k=+p.pop(),a=getp(d,p.join('.'));if(Array.isArray(a)){a.splice(k,1);saveAll();render(DATA)}});
 $('map').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-act]');if(!b)return;const d=DATA[mapIdx(b)],i=+b.dataset.i,j=+b.dataset.j,S=d['جذاذة_مفصلة'];
   const act={addStage:()=>S.push({'المرحلة':tr('مرحلة جديدة'),'المدة':'','الأنشطة':[{'عنوان_النشاط':tr('نشاط جديد'),'سير_النشاط':[tr('خطوة جديدة')]}]}),
+   up:()=>i>0&&([S[i-1],S[i]]=[S[i],S[i-1]]),down:()=>i<S.length-1&&([S[i+1],S[i]]=[S[i],S[i+1]]),
    delStage:()=>confirm(tr('حذف هذه المرحلة؟'))&&S.splice(i,1),
    addAct:()=>S[i]['الأنشطة'].push({'عنوان_النشاط':tr('نشاط جديد'),'سير_النشاط':[tr('خطوة جديدة')]}),
    delAct:()=>confirm(tr('حذف هذا النشاط؟'))&&S[i]['الأنشطة'].splice(j,1),
@@ -439,14 +442,14 @@ $('bPng').onclick=async()=>{
 /* ===== history of generated maps ===== */
 const HK='gm_hist';
 const getHist=()=>{try{return JSON.parse(ls.get(HK))||[]}catch(_){return[]}};
-function pushHist(A){try{const clean=JSON.parse(JSON.stringify(A));const t=A.map(d=>tx((d['معلومات_الدرس']||{})['عنوان_الحصة'])).filter(Boolean).join(' + ')||'—';
-  const H=getHist();H.unshift({ts:Date.now(),t,data:clean});ls.set(HK,JSON.stringify(H.slice(0,10)))}catch(_){}}
+function pushHist(A){try{const clean=JSON.parse(JSON.stringify(A));window.__ht=Date.now();const t=A.map(d=>tx((d['معلومات_الدرس']||{})['عنوان_الحصة'])).filter(Boolean).join(' + ')||'—';
+  const H=getHist();H.unshift({ts:window.__ht,t,data:clean});ls.set(HK,JSON.stringify(H.slice(0,10)))}catch(_){}}
 function showHist(){const H=getHist();
   $('hb').innerHTML=H.length?H.map((h,i)=>`<div class="sl" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><div style="min-width:0"><b>${esc(h.t)}</b><br><small style="color:#6b7690">${new Date(h.ts).toLocaleString(LANG==='fr'?'fr-FR':'ar-MA')}</small></div><div class="row w" style="flex:none"><button type="button" data-h="open" data-i="${i}">${tr('فتح')}</button><button type="button" class="x" data-h="del" data-i="${i}" title="${tr('حذف')}" style="width:28px;height:28px">✕</button></div></div>`).join(''):`<p style="color:#6b7690">${tr('لا يوجد سجل بعد')}</p>`;
   $('dH').showModal()}
 $('bHist').onclick=showHist;
 $('hb').onclick=e=>{const b=e.target.closest('[data-h]');if(!b)return;const H=getHist(),i=+b.dataset.i;
-  if(b.dataset.h==='open'&&H[i]){$('dH').close();render(H[i].data)}
+  if(b.dataset.h==='open'&&H[i]){$('dH').close();window.__ht=H[i].ts;render(H[i].data)}
   else if(b.dataset.h==='del'){H.splice(i,1);ls.set(HK,JSON.stringify(H));showHist()}};
 $('hClr').onclick=()=>{if(confirm(tr('مسح كل السجل؟'))){ls.del(HK);showHist()}};
 
@@ -464,6 +467,24 @@ $('bPdf').onclick=async()=>{const b=$('bPdf'),old=b.innerHTML;
     pdf.addImage(c.toDataURL('image/jpeg',.92),'JPEG',(pw-w)/2,(ph-h)/2,w,h);pdf.save('khartat_hissa.pdf');st('')}
   catch(e){document.body.classList.remove('cap');links();st(e.message,1);alert(e.message)}
   finally{b.disabled=false;b.innerHTML=old}};
+
+/* ===== read PPTX / DOCX text in the browser (no size limit, no PDF conversion) ===== */
+const unesc=t=>t.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
+const xmlParas=(x,pTag,tTag)=>[...x.matchAll(new RegExp('<'+pTag+'[ >][\\s\\S]*?</'+pTag+'>','g'))].map(m=>unesc([...m[0].matchAll(new RegExp('<'+tTag+'(?: [^>]*)?>([\\s\\S]*?)</'+tTag+'>','g'))].map(t=>t[1]).join(''))).filter(t=>t.trim());
+async function officeText(f){
+  await loadJs('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',()=>window.JSZip);
+  const z=await JSZip.loadAsync(f),num=n=>+(n.match(/(\d+)\.xml$/)||[0,0])[1];let out='';
+  if(/\.pptx$/i.test(f.name)){
+    const sl=Object.keys(z.files).filter(n=>/^ppt\/slides\/slide\d+\.xml$/.test(n)).sort((a,b)=>num(a)-num(b));
+    for(let i=0;i<sl.length;i++){const ps=xmlParas(await z.file(sl[i]).async('string'),'a:p','a:t');
+      const nn='ppt/notesSlides/notesSlide'+num(sl[i])+'.xml',nt=z.file(nn)?xmlParas(await z.file(nn).async('string'),'a:p','a:t'):[];
+      out+='\n### '+(LANG==='fr'?'Diapositive ':'شريحة ')+(i+1)+'\n'+ps.join('\n')+(nt.length?'\n['+(LANG==='fr'?'Notes':'ملاحظات')+'] '+nt.join(' '):'')+'\n'}
+  }else{const d=z.file('word/document.xml');out=d?xmlParas(await d.async('string'),'w:p','w:t').join('\n'):''}
+  if(out.replace(/###[^\n]*|[\s]/g,'').length<40)throw new Error(tr('لا نص قابل للقراءة في هذا الملف. إن كان صورًا فحوّله إلى PDF:')+' '+f.name);
+  return out.trim()}
+
+/* ===== debounced history sync ===== */
+let _hs;function syncHistSoon(){clearTimeout(_hs);_hs=setTimeout(()=>{try{const H=getHist(),i=H.findIndex(h=>h.ts===window.__ht);if(i>=0){H[i].data=JSON.parse(JSON.stringify(DATA));ls.set(HK,JSON.stringify(H))}}catch(_){}},900)}
 </script>
 </body>
 </html>
