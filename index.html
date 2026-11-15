@@ -183,7 +183,7 @@ body:not(.auth-ok)>:not(#authGate):not(script){visibility:hidden;pointer-events:
       <div class="row"><button id="openRouterConnect" type="button" class="s" style="background:#e3e8f3;color:#1d2a44">Connecter OpenRouter (OAuth)</button><button id="clearAiKey" type="button" class="s" style="background:#fde7e5;color:#b3261e">Effacer la clé</button></div>
     </div>
     <div class="sec"><div class="l"><i>3</i> Modèle IA</div>
-      <select id="mdl" dir="ltr"></select></div>
+      <input id="mdl" list="mdlList" dir="ltr" autocomplete="off" spellcheck="false" placeholder="gemini-3.5-flash"><datalist id="mdlList"></datalist><small style="display:block;color:#6b7690;font-size:12px;line-height:1.7">اختر من الاقتراحات أو اكتب أي معرّف نموذج متاح في حسابك.</small></div>
     <div class="sec"><div class="l"><i>4</i> ملفات الحصة</div>
       <div id="dz"><b>📄</b>اسحب الملفات هنا أو اضغط للاختيار<br><small>PDF · PPTX · DOCX · صور · نص · JSON</small></div>
       <input id="fi" type="file" multiple accept=".pdf,image/*,.txt,.md,.json,.pptx,.docx" hidden>
@@ -200,11 +200,11 @@ body:not(.auth-ok)>:not(#authGate):not(script){visibility:hidden;pointer-events:
 <script src="supabase-config.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-const MODEL_OPTIONS={gemini:['gemini-2.5-flash','gemini-2.5-flash-lite'],groq:['openai/gpt-oss-20b','llama-3.3-70b-versatile'],openrouter:['google/gemini-2.5-flash','openai/gpt-4.1-mini','anthropic/claude-sonnet-4'],openai:['gpt-4.1-mini','gpt-4.1'],anthropic:['claude-sonnet-4-20250514','claude-3-7-sonnet-20250219']};
+const MODEL_OPTIONS={gemini:['gemini-3.5-flash','gemini-3.6-flash','gemini-3.5-flash-lite','gemini-2.5-flash','gemini-2.5-flash-lite'],groq:['openai/gpt-oss-20b','llama-3.3-70b-versatile'],openrouter:['google/gemini-2.5-flash','openai/gpt-4.1-mini','anthropic/claude-sonnet-4'],openai:['gpt-4.1-mini','gpt-4.1'],anthropic:['claude-sonnet-4-20250514','claude-3-7-sonnet-20250219']};
 const PROVIDER_HINTS={gemini:'Google AI Studio : clé API personnelle.',groq:'Groq Console : clé API personnelle. Les modèles disponibles dépendent de ton compte.',openrouter:'OpenRouter : clé personnelle ou connexion OAuth sans copier-coller.',openai:'OpenAI Platform : clé API personnelle (facturation API séparée de ChatGPT Plus).',anthropic:'Anthropic Console : clé API personnelle.'};
 let aiKeyMemory='';
 const provider=()=>$('aiProvider').value;
-function refreshAiModels(){const p=provider(),list=MODEL_OPTIONS[p]||[];$('mdl').innerHTML=list.map((m,i)=>`<option value="${m}">${m}</option>`).join('');$('providerHint').textContent=PROVIDER_HINTS[p]||'';$('openRouterConnect').hidden=p!=='openrouter';$('aiKey').placeholder=p==='gemini'?'AIza…':p==='groq'?'gsk_…':p==='openrouter'?'sk-or-v1-…':p==='openai'?'sk-proj-…':'sk-ant-…';}
+function refreshAiModels(){const p=provider(),list=MODEL_OPTIONS[p]||[];$('mdlList').innerHTML=list.map(m=>`<option value="${m}">`).join('');$('mdl').value=list[0]||'';$('providerHint').textContent=PROVIDER_HINTS[p]||'';$('openRouterConnect').hidden=p!=='openrouter';$('aiKey').placeholder=p==='gemini'?'AIza…':p==='groq'?'gsk_…':p==='openrouter'?'sk-or-v1-…':p==='openai'?'sk-proj-…':'sk-ant-…';}
 $('aiProvider').onchange=()=>{aiKeyMemory='';$('aiKey').value='';refreshAiModels()};
 $('aiKey').oninput=()=>{aiKeyMemory=$('aiKey').value.trim()};
 $('clearAiKey').onclick=()=>{aiKeyMemory='';$('aiKey').value='';$('aiKey').focus()};
@@ -248,7 +248,7 @@ const FR={
 'التثبيت يحتاج رابطًا https':"L'installation nécessite un lien https",'المتصفحات لا تثبّت التطبيقات من ملف محلي. ارفع ملفات التطبيق (index.html وmanifest.webmanifest وsw.js والأيقونتين) إلى أي استضافة ثابتة مجانية مثل Netlify Drop أو GitHub Pages أو Cloudflare Pages، ثم افتح الرابط واضغط «تثبيت التطبيق» من الهاتف أو الحاسوب.':"Les navigateurs n'installent pas une appli depuis un fichier local. Déposez les fichiers (index.html, manifest.webmanifest, sw.js et les deux icônes) sur un hébergement statique gratuit (Netlify Drop, GitHub Pages ou Cloudflare Pages), ouvrez le lien puis cliquez sur « Installer l'appli » depuis le téléphone ou l'ordinateur.",
 'التثبيت على آيفون / آيباد':"Installation sur iPhone / iPad",'في Safari: اضغط زر <b>المشاركة</b> ⬆ ثم <b>إضافة إلى الشاشة الرئيسية</b>.':"Dans Safari : touchez <b>Partager</b> ⬆ puis <b>Sur l'écran d'accueil</b>.",'التثبيت من قائمة المتصفح':'Installation depuis le menu du navigateur','<b>أندرويد (Chrome):</b> القائمة ⋮ ثم «تثبيت التطبيق».<br><b>ويندوز (Chrome / Edge):</b> أيقونة التثبيت في شريط العنوان، أو القائمة ← «تثبيت».<br>إن لم يظهر الخيار فتأكد أنك تفتح الرابط عبر https.':"<b>Android (Chrome) :</b> menu ⋮ puis « Installer l'application ».<br><b>Windows (Chrome / Edge) :</b> icône d'installation dans la barre d'adresse, ou menu → « Installer ».<br>Si l'option n'apparaît pas, vérifiez que le lien est en https.",
 'تعذّر تحميل مكتبة التصدير (تحقق من الاتصال)':"Impossible de charger la bibliothèque d'export (vérifiez la connexion)"};
-Object.assign(FR,{'اليوم':'Jour','مجال':'domaine','PDF · PPTX · DOCX · صور · نص · JSON':'PDF · PPTX · DOCX · images · texte · JSON','لا نص قابل للقراءة في هذا الملف. إن كان صورًا فحوّله إلى PDF:':'Aucun texte lisible dans ce fichier. S\'il ne contient que des images, convertissez-le en PDF :','ملف JSON غير صالح:':'Fichier JSON invalide :','تصدير PDF':'Export PDF','السجل':'Historique','سجل الخرائط':'Historique des cartes','آخر 10 خرائط مولَّدة في هذا المتصفح':'10 dernières cartes générées dans ce navigateur','مسح السجل':"Effacer l'historique",'المستوى الدراسي':'Cycle scolaire','ابتدائي':'Primaire','إعدادي':'Collège','ثانوي':'Lycée','لا يوجد سجل بعد':"Aucun historique pour l'instant",'فتح':'Ouvrir','حذف':'Supprimer','مسح كل السجل؟':"Effacer tout l'historique ?",'جارٍ إنشاء PDF…':'Création du PDF…','إعادة المحاولة تلقائيًا…':'Nouvelle tentative automatique…','⚠ يُحفظ المفتاح كنص عادي في هذا المتصفح. لا تفعّل التذكّر على جهاز مشترك، ويُستحسن تقييده بنطاق موقعك (HTTP referrer) من لوحة Google AI Studio.':"⚠ La clé est enregistrée en clair dans ce navigateur. Ne l'activez pas sur un appareil partagé et limitez-la à votre domaine (HTTP referrer) dans Google AI Studio."});
+Object.assign(FR,{'الحمولة كبيرة جدًا حتى بعد الضغط. قلّل عدد الملفات أو الصفحات.':'Requête trop volumineuse même après compression. Réduisez le nombre de fichiers ou de pages.','اختر من الاقتراحات أو اكتب أي معرّف نموذج متاح في حسابك.':"Choisissez une suggestion ou saisissez n'importe quel identifiant de modèle disponible sur votre compte.",'اليوم':'Jour','مجال':'domaine','PDF · PPTX · DOCX · صور · نص · JSON':'PDF · PPTX · DOCX · images · texte · JSON','لا نص قابل للقراءة في هذا الملف. إن كان صورًا فحوّله إلى PDF:':'Aucun texte lisible dans ce fichier. S\'il ne contient que des images, convertissez-le en PDF :','ملف JSON غير صالح:':'Fichier JSON invalide :','تصدير PDF':'Export PDF','السجل':'Historique','سجل الخرائط':'Historique des cartes','آخر 10 خرائط مولَّدة في هذا المتصفح':'10 dernières cartes générées dans ce navigateur','مسح السجل':"Effacer l'historique",'المستوى الدراسي':'Cycle scolaire','ابتدائي':'Primaire','إعدادي':'Collège','ثانوي':'Lycée','لا يوجد سجل بعد':"Aucun historique pour l'instant",'فتح':'Ouvrir','حذف':'Supprimer','مسح كل السجل؟':"Effacer tout l'historique ?",'جارٍ إنشاء PDF…':'Création du PDF…','إعادة المحاولة تلقائيًا…':'Nouvelle tentative automatique…','⚠ يُحفظ المفتاح كنص عادي في هذا المتصفح. لا تفعّل التذكّر على جهاز مشترك، ويُستحسن تقييده بنطاق موقعك (HTTP referrer) من لوحة Google AI Studio.':"⚠ La clé est enregistrée en clair dans ce navigateur. Ne l'activez pas sur un appareil partagé et limitez-la à votre domaine (HTTP referrer) dans Google AI Studio."});
 const tr=s=>LANG==='fr'&&FR[s]!=null?FR[s]:s;
 const FRK={informations_lecon:'معلومات_الدرس',structure_seance:'هيكلة_الحصة',objectifs_seance:'أهداف_الحصة',moyens_didactiques:'الوسائل_الديداكتيكية',fiche_detaillee:'جذاذة_مفصلة',lexique_seance:'معلومات_إضافية',matiere:'المادة',niveau:'المستوى',periode:'الفترة',unite:'الوحدة',semaine:'الأسبوع',seance:'الحصة',jour:'اليوم',titre_seance:'عنوان_الحصة',duree_totale:'المدة_الإجمالية',donnees_supplementaires:'بيانات_إضافية',nom_fichier:'اسم_الملف',source_information:'مصدر_المعلومة',etape:'المرحلة',duree:'المدة',sous_activites:'الأنشطة_الفرعية',activite:'النشاط',formule_introductive:'الصيغة_الافتتاحية',objectifs:'الأهداف',moyens:'الوسائل',moyen:'الوسيلة',usage:'الاستعمال',activites:'الأنشطة',titre_activite:'عنوان_النشاط',deroulement:'سير_النشاط',support_activite:'مجال_النشاط',mots_outils:'كلمات_بصرية',strategies:'استراتيجيات',regles:'قواعد',informations_complementaires:'معلومات_إضافية'};
 const ARK=Object.fromEntries(Object.entries(FRK).map(([a,b])=>[b,a]));
@@ -331,13 +331,9 @@ function fileHint(name){const m=name.match(/(?:^|[_\-\s])N(\d)(?:[_\-\s]P(\d))?(
   if(m[1])o.push('المستوى '+m[1]);if(m[2])o.push('المرحلة '+m[2]);if(m[3])o.push('الأسبوع '+m[3]);if(m[4])o.push('الحصة/اليوم '+m[4]);
   return o.length>1?'[مؤشر من اسم الملف "'+name+'": '+o.join('، ')+'. استعمله فقط إن لم يذكره المستند.]':''}
 async function callG(m,fs){
-  const parts=[{text:lvlFix(LANG==='fr'?PROMPT_FR:PROMPT_AR)+($('note').value.trim()?(LANG==='fr'?"\nRemarques de l'utilisateur : ":'\nملاحظات المستخدم: ')+$('note').value.trim():'')}];
-  for(const f of fs){
-    const hint=fileHint(f.name);if(hint)parts.push({text:hint});
-    if(/\.(pptx|docx)$/i.test(f.name)){parts.push(...await officeParts(f));continue}
-    if(/^text\/|json$/.test(f.type)||/\.(txt|md|json)$/i.test(f.name))parts.push({text:'--- '+f.name+' ---\n'+await f.text()});
-    else parts.push({inlineData:{mimeType:f.type||(/\.pdf$/i.test(f.name)?'application/pdf':'image/jpeg'),data:await b64(f)}});
-  }
+  let parts=await buildParts(fs,false);
+  if(JSON.stringify(parts).length>3.9e6)parts=await buildParts(fs,true);          /* still too big -> turn PDFs into compressed page images */
+  if(JSON.stringify(parts).length>4.1e6)throw new Error(tr('الحمولة كبيرة جدًا حتى بعد الضغط. قلّل عدد الملفات أو الصفحات.'));
   let lastErr;
   for(let a=0;a<3;a++){
     try{
@@ -357,18 +353,18 @@ async function callG(m,fs){
   throw lastErr;
 }
 async function generate(){
-  const m=$('mdl').value,pasted=$('js').value.trim();
+  const m=$('mdl').value.trim(),pasted=$('js').value.trim();
   if(pasted){try{return render(canon(parseAny(pasted)))}catch(e){return st(tr('JSON غير صالح:')+' '+e.message,1)}}
   if(files.length&&files.every(f=>/\.json$/i.test(f.name))){try{const out=[];for(const f of files)out.push(...[].concat(canon(parseAny(await f.text()))));if(!out.every(o=>o&&o['معلومات_الدرس']))throw new Error('معلومات_الدرس');files=[];showF();return render(out.slice(0,2))}catch(e){return st(tr('ملف JSON غير صالح:')+' '+e.message,1)}}
 if(!files.length&&!$('note').value.trim())return st('ارفع ملفًا واحدًا على الأقل',1);
-  if(files.filter(f=>!/\.(pptx|docx)$/i.test(f.name)).reduce((a,f)=>a+f.size,0)>3e6)return st('حجم الملفات يتجاوز 3 م.ب (حد الإرسال الآمن)',1);
+  if(files.some(f=>f.size>120e6))return st('ملف أكبر من 120 م.ب: قلّل حجمه أو قسّمه',1);
   const sep=files.length>=2&&$('sep').checked;if(sep&&files.length>2)return st('اختر ملفين فقط، أو ألغِ خيار «خريطة مستقلة لكل ملف»',1);
   $('bGo').disabled=true;st(tr('جارٍ التحليل بـ')+' '+provider().toUpperCase()+' / '+m+(sep?' '+tr('(ملفان بالتوازي)'):'')+' '+tr('… قد يستغرق دقيقة'));
   try{
     const res=await Promise.allSettled((sep?files.map(f=>[f]):[files]).map(j=>callG(m,j)));
     const ok=res.filter(r=>r.status==='fulfilled').map(r=>r.value),bad=res.filter(r=>r.status==='rejected').map(r=>r.reason.message);
     if(!ok.length)throw new Error(bad[0]);
-    render(ok);pushHist(ok);if(bad.length)$('tag').textContent+=' — '+tr('تعذّر تحليل ملف:')+' '+bad[0];
+    render(ok);pushHist(ok);if(window.__pdfNote){$('tag').textContent+=' — '+window.__pdfNote;window.__pdfNote=''}if(bad.length)$('tag').textContent+=' — '+tr('تعذّر تحليل ملف:')+' '+bad[0];
   }catch(e){st(tr('تعذّر التوليد:')+' '+e.message,1)}finally{$('bGo').disabled=false}
 }
 function parse(t){t=t.trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();const a=t.indexOf('{'),b=t.lastIndexOf('}');return JSON.parse(t.slice(a,b+1))}
@@ -640,7 +636,7 @@ const relsOf=async(z,path)=>{const f=z.file(path.replace(/([^/]+)$/,'_rels/$1.re
   return [...x.matchAll(/<Relationship\b[^>]*>/g)].map(m=>{const a=n=>(m[0].match(new RegExp('\\b'+n+'="([^"]*)"'))||[])[1]||'';return{id:a('Id'),type:a('Type'),target:a('Target')}})};
 const resolvePath=(base,t)=>{if(t[0]==='/')return t.slice(1);const p=base.replace(/[^/]*$/,'').split('/').filter(Boolean);for(const s of t.split('/')){if(s==='..')p.pop();else if(s&&s!=='.')p.push(s)}return p.join('/')};
 const MIME={png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp'};
-async function shrinkImg(blob,max=900){const bm=await createImageBitmap(blob),k=Math.min(1,max/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(bm.width*k));c.height=Math.max(1,Math.round(bm.height*k));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bm,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.65).split(',')[1]}
+async function shrinkImg(blob,max=900,q=.65){const bm=await createImageBitmap(blob),k=Math.min(1,max/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(bm.width*k));c.height=Math.max(1,Math.round(bm.height*k));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bm,0,0,c.width,c.height);return c.toDataURL('image/jpeg',q).split(',')[1]}
 async function officeParts(f){
   await loadJs('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',()=>window.JSZip);
   const z=await JSZip.loadAsync(f),fr=LANG==='fr',noText=()=>new Error(tr('لا نص قابل للقراءة في هذا الملف. إن كان صورًا فحوّله إلى PDF:')+' '+f.name);
@@ -679,6 +675,45 @@ const officeText=async f=>(await officeParts(f)).filter(p=>p.text).map(p=>p.text
 
 /* ===== debounced history sync ===== */
 let _hs;function syncHistSoon(){clearTimeout(_hs);_hs=setTimeout(()=>{try{const H=getHist(),i=H.findIndex(h=>h.ts===window.__ht);if(i>=0){H[i].data=JSON.parse(JSON.stringify(DATA));ls.set(HK,JSON.stringify(H))}}catch(_){}},900)}
+
+/* ===== adaptive preparation: keeps every request under the ~4 MB serverless limit ===== */
+async function loadPdfJs(){
+  if(window.pdfjsLib&&pdfjsLib.GlobalWorkerOptions.workerSrc)return;
+  const base='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+  await loadJs(base+'pdf.min.js',()=>window.pdfjsLib);
+  const w=await(await fetch(base+'pdf.worker.min.js')).text();
+  pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([w],{type:'text/javascript'}))}
+async function pdfToImageParts(f){
+  await loadPdfJs();
+  const doc=await pdfjsLib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise,
+    n=doc.numPages,maxP=Math.min(n,64),S=[[1000,.62],[820,.55],[680,.5],[560,.45]],B=2.5e6,res=S.map(()=>[]);
+  for(let i=1;i<=maxP;i++){
+    const pg=await doc.getPage(i),v=pg.getViewport({scale:1}),vp=pg.getViewport({scale:1000/Math.max(v.width,v.height)}),
+      c=document.createElement('canvas');c.width=Math.ceil(vp.width);c.height=Math.ceil(vp.height);
+    const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+    await pg.render({canvasContext:x,viewport:vp}).promise;
+    S.forEach(([w,q],k)=>{const d=document.createElement('canvas'),r=w/1000;d.width=Math.round(c.width*r);d.height=Math.round(c.height*r);
+      d.getContext('2d').drawImage(c,0,0,d.width,d.height);res[k].push(d.toDataURL('image/jpeg',q).split(',')[1])});
+    pg.cleanup()}
+  const tot=a=>a.reduce((t,d)=>t+d.length,0),k=res.findIndex(a=>tot(a)<=B);let imgs;
+  if(k>=0)imgs=res[k];else{imgs=[];let t=0;for(const d of res[S.length-1]){if(t+d.length>B)break;t+=d.length;imgs.push(d)}}
+  if(imgs.length<n){const fr=LANG==='fr';window.__pdfNote=fr?`Seules les ${imgs.length} premières pages sur ${n} ont été envoyées (limite de taille).`:`أُرسلت أول ${imgs.length} صفحة من ${n} بسبب حدّ الحجم.`}
+  return{parts:imgs.map(d=>({inlineData:{mimeType:'image/jpeg',data:d}})),sent:imgs.length,total:n}}
+async function fileToParts(f,force){
+  const out=[],hint=fileHint(f.name),fr=LANG==='fr';if(hint)out.push({text:hint});
+  if(/\.(pptx|docx)$/i.test(f.name)){out.push(...await officeParts(f));return out}
+  if(/^text\/|json$/.test(f.type)||/\.(txt|md|json)$/i.test(f.name)){out.push({text:'--- '+f.name+' ---\n'+(await f.text()).slice(0,170000)});return out}
+  if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){
+    if(!force&&f.size<=2.3e6&&['gemini','anthropic'].includes(provider())){out.push({inlineData:{mimeType:'application/pdf',data:await b64(f)}});return out}
+    st(fr?'Compression du PDF en images…':'جارٍ ضغط ملف PDF إلى صور…');
+    const r=await pdfToImageParts(f);
+    out.push({text:fr?`[PDF "${f.name}" : ${r.sent} page(s) envoyée(s) sous forme d'images]`:`[ملف PDF "${f.name}": أُرسلت ${r.sent} صفحة كصور]`},...r.parts);return out}
+  if(f.size>6e5||!/^image\/(jpeg|png|webp)$/.test(f.type)){try{out.push({inlineData:{mimeType:'image/jpeg',data:await shrinkImg(f,1600,.72)}});return out}catch(_){}}
+  out.push({inlineData:{mimeType:f.type||'image/jpeg',data:await b64(f)}});return out}
+async function buildParts(fs,force){
+  const parts=[{text:lvlFix(LANG==='fr'?PROMPT_FR:PROMPT_AR)+($('note').value.trim()?(LANG==='fr'?"\nRemarques de l'utilisateur : ":'\nملاحظات المستخدم: ')+$('note').value.trim():'')}];
+  for(const f of fs)parts.push(...await fileToParts(f,force));
+  return parts}
 </script>
 </body>
 </html>

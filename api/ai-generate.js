@@ -2,7 +2,7 @@
 // User-supplied provider keys are forwarded only for this request; never stored or logged.
 const WINDOW_MS = 60_000;
 const MAX_REQUEST_BYTES = 4.2 * 1024 * 1024;
-const MAX_PARTS = 40;
+const MAX_PARTS = 80;
 const hits = new Map();
 
 function json(res, status, data) {
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
       payload = { model, temperature: 0.2, response_format: { type: "json_object" }, messages: [{ role: "user", content }] };
     }
 
-    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 110_000);
+    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 55_000);
     let upstream;
     try { upstream = await fetch(url, { method: "POST", headers, body: JSON.stringify(payload), signal: controller.signal }); }
     finally { clearTimeout(timeout); }
