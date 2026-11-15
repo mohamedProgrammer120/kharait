@@ -94,7 +94,7 @@ html[dir=ltr] .st .d{margin-right:0;margin-left:auto}html[dir=ltr] .st ul{paddin
 .card .h{background:var(--c);color:#fff;padding:7px 12px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
 .card .h .n{background:#fff;color:var(--c);border-radius:50%;width:24px;height:24px;display:grid;place-items:center;font-size:13px;flex:none}
 .card .h .d{margin-right:auto;background:#ffffff33;border-radius:10px;padding:0 9px;font-size:12px;white-space:nowrap}
-.card .b{padding:8px 12px 10px}.a{margin-top:6px}.a b{color:var(--c);display:block}.a b small.dm{font-weight:400;opacity:.85;font-size:11px;color:var(--mut)}
+.card .b{padding:8px 12px 10px}.a{margin-top:6px}.a b{color:var(--c);display:block}.a b small.dm{display:inline-block;margin-inline-start:6px;padding:0 7px;border:1px solid #c9d2e3;border-radius:9px;background:#f4f6fb;font-weight:400;font-size:10.5px;line-height:1.7;color:var(--mut)}
 .a ul{margin:2px 0 0;padding:0;list-style:none}.a li{padding-right:16px;position:relative}.a li:before{content:"";position:absolute;right:2px;top:.62em;width:6px;height:6px;border:1.5px solid var(--c);border-radius:1px}
 .oval{margin:0 auto;width:310px;min-height:190px;border-radius:50%;background:#1d3557;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 34px;border:6px solid #e9b949}
 .oval b{font-size:21px;line-height:1.4}.oval small{opacity:.85;margin-top:8px;font-size:12px;line-height:1.6}
@@ -260,7 +260,7 @@ function trDom(){const w=document.createTreeWalker(document.body,NodeFilter.SHOW
 const PROMPT_FR=`Tu es un analyste pédagogique spécialisé dans les fiches d'enseignement explicite de l'école primaire marocaine. Les fichiers joints concernent UNE seule séance. Produis **un seul objet JSON valide** (sans texte ni balises \u0060\u0060\u0060 autour), avec exactement ces six clés principales, dans cet ordre, sans en ajouter d'autres :
 {"informations_lecon":{},"structure_seance":[],"objectifs_seance":{},"moyens_didactiques":{},"fiche_detaillee":[],"informations_complementaires":{}}
 Rédige toutes les valeurs en français (si la source est déjà en français, reprends ses formulations). Les mots, titres de textes et consignes cités textuellement d'une source arabe restent en arabe, entre guillemets, sans traduction.
-Règles : n'invente rien ; ce que la source ne dit pas : « Non mentionné dans la source » (les durées non mentionnées restent "") ; les textes longs ne sont pas recopiés (titre seulement).
+Règles : n'invente rien ; ce que la source ne dit pas : « Non mentionné dans la source » (les durées non mentionnées restent "") ; exception : titre_seance n'est jamais « Non mentionné » — s'il n'y a pas de titre explicite, rédige un titre court qui résume les étapes ; les textes longs ne sont pas recopiés (titre seulement).
 - informations_lecon : {"matiere","niveau","unite","semaine","seance","jour","titre_seance","duree_totale","donnees_supplementaires"}
 - structure_seance : tirée uniquement de la diapositive de structure : [{"etape","duree","sous_activites":[{"activite","duree"}]}]
 - objectifs_seance : {"formule_introductive":"Au moins 80 % des apprenants seront capables de :","objectifs":["…"]}
@@ -300,10 +300,14 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const tx=x=>x==null?'':typeof x==='string'||typeof x==='number'?String(x):Array.isArray(x)?x.map(tx).join('، '):Object.values(x).map(tx).filter(Boolean).join(' — ');
 const arr=x=>Array.isArray(x)?x:x?[x]:[];
 const nm=s=>/غير مذكور|non mentionn|not mentioned/i.test(s||'')?'':s;
+const ttl=d=>{const I=(d&&d['معلومات_الدرس'])||{},t=nm(tx(I['عنوان_الحصة']));if(t)return t;
+  const st=((d&&d['جذاذة_مفصلة'])||[]).map(x=>tx(x['المرحلة'])).filter(x=>x&&!/افتتاح|اختتام|ختام|ouverture|cl[ôo]ture/i.test(x));
+  return st.length?st.slice(0,3).join(' - '):nm(tx(I['المادة']))};
+const dur=v=>LANG==='ar'?String(v||'').replace(/\s*min(?:utes?)?\b/ig,' د'):v;
 
 const PROMPT_AR=`أنت محلّل تربوي متخصّص في جذاذات التعليم الصريح بالابتدائي المغربي. المرفقات خاصة بحصة واحدة. أخرج **كائن JSON واحدًا صالحًا فقط** (دون أي نص أو علامات \`\`\` خارجه) بستة مفاتيح رئيسية بهذا الترتيب، ولا تضف غيرها:
 {"معلومات_الدرس":{},"هيكلة_الحصة":[],"أهداف_الحصة":{},"الوسائل_الديداكتيكية":{},"جذاذة_مفصلة":[],"معلومات_إضافية":{}}
-قواعد: لا تخترع شيئًا، وما لم يرد اكتب فيه «غير مذكور في المصدر» (والمدد غير المذكورة اتركها ""). النصوص الطويلة لا تُنقل كاملة.
+قواعد: لا تخترع شيئًا، وما لم يرد اكتب فيه «غير مذكور في المصدر» (والمدد غير المذكورة اتركها ""). استثناء: عنوان_الحصة لا يُترك «غير مذكور»، فإن لم يوجد عنوان صريح فاكتب عنوانًا قصيرًا يلخّص مراحل الحصة. النصوص الطويلة لا تُنقل كاملة.
 - معلومات_الدرس: {"المادة","المستوى","الوحدة","الأسبوع","الحصة","اليوم","عنوان_الحصة","المدة_الإجمالية","بيانات_إضافية"}
 - هيكلة_الحصة: [{"المرحلة","المدة","الأنشطة_الفرعية":[{"النشاط","المدة"}]}] من شريحة الهيكلة حصرًا.
 - أهداف_الحصة: {"الصيغة_الافتتاحية":"على الأقل 80% من المتعلمين سيكونون قادرين على:","الأهداف":["…"]}
@@ -328,7 +332,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function fileHint(name){const m=name.match(/(?:^|[_\-\s])N(\d)(?:[_\-\s]P(\d))?(?:[_\-\s]SEM(\d+))?(?:[_\-\s]S(\d+))?/i);if(!m)return'';
   const o=[];if(LANG==='fr'){if(m[1])o.push('niveau '+m[1]);if(m[2])o.push('phase '+m[2]);if(m[3])o.push('semaine '+m[3]);if(m[4])o.push('séance/jour '+m[4]);
     return o.length>1?'[Indice tiré du nom du fichier "'+name+'" : '+o.join(', ')+'. Utilise-le seulement si le document ne le précise pas.]':''}
-  if(m[1])o.push('المستوى '+m[1]);if(m[2])o.push('المرحلة '+m[2]);if(m[3])o.push('الأسبوع '+m[3]);if(m[4])o.push('الحصة/اليوم '+m[4]);
+  if(m[1])o.push('المستوى '+m[1]+' (السنة '+m[1]+' من الابتدائي)');if(m[2])o.push('المرحلة '+m[2]);if(m[3])o.push('الأسبوع '+m[3]);if(m[4])o.push('الحصة/اليوم '+m[4]);
   return o.length>1?'[مؤشر من اسم الملف "'+name+'": '+o.join('، ')+'. استعمله فقط إن لم يذكره المستند.]':''}
 async function callG(m,fs){
   let parts=await buildParts(fs,false);
@@ -398,10 +402,10 @@ function mapHtml(d){
   const lb=(id,def)=>`<span contenteditable data-l="${id}">${esc(B[id]??def)}</span>`;
   const ed=(p,v,ph)=>`<span contenteditable data-p="${p}" data-ph="${tr(ph||'')}">${esc(v)}</span>`;
   const li=(p,v,ph)=>`<li contenteditable data-p="${p}" data-li="1" data-ph="${tr(ph)}">${esc(v)}</li>`;
-  const title=tx(I['عنوان_الحصة']);
+  const title=ttl(d);
   const IK=[['المادة','المادة','#2f6fd0'],['المستوى','المستوى','#2e9a5b'],['الوحدة','الوحدة','#e08a1e'],['الأسبوع','الأسبوع','#7b3fb0'],['الحصة','الحصة','#d6336c'],['المدة','المدة_الإجمالية','#12877f'],['اليوم','اليوم','#8a6d3b']];
-  const meta=IK.map(([l,k,c])=>`<div class="ic" style="--k:${c}"><small>${lb('i_'+l,tr(l))}</small><span contenteditable data-p="معلومات_الدرس.${k}" data-ph="—">${esc(nm(tx(I[k])||(k==='المدة_الإجمالية'?tx(I['المدة']):'')))}</span></div>`).join('');
-  const card=(s,i,x)=>{const c=COL[i%COL.length],P=`جذاذة_مفصلة.${i}`;return `<div class="card" style="--c:${c};${x||''}"><div class="h"><span class="n">${i+1}</span>${ed(P+'.المرحلة',tx(s['المرحلة']),'اسم المرحلة')}<span class="d">${ed(P+'.المدة',tx(s['المدة']),'مدة')}</span><button class="ctl x" data-act="up" data-i="${i}" title="▲">▲</button><button class="ctl x" data-act="down" data-i="${i}" title="▼">▼</button><button class="ctl x" data-act="delStage" data-i="${i}" title="${tr('حذف المرحلة')}">✕</button></div><div class="b">${arr(s['الأنشطة']).map((a,j)=>`<div class="a"><button class="ctl x" data-act="delAct" data-i="${i}" data-j="${j}" title="${tr('حذف النشاط')}">✕</button><b>${ed(`${P}.الأنشطة.${j}.عنوان_النشاط`,tx(a['عنوان_النشاط']),'عنوان النشاط')}${a['مجال_النشاط']?' <small class="dm">('+ed(P+'.الأنشطة.'+j+'.مجال_النشاط',tx(a['مجال_النشاط']),'مجال')+')</small>':''}</b><ul>${arr(a['سير_النشاط']).map((x,k)=>li(`${P}.الأنشطة.${j}.سير_النشاط.${k}`,x,'خطوة')).join('')}</ul><button class="ctl add sm" data-act="addStep" data-i="${i}" data-j="${j}">${tr('＋ خطوة')}</button></div>`).join('')}<button class="ctl add" data-act="addAct" data-i="${i}">${tr('＋ نشاط')}</button></div></div>`};
+  const meta=IK.map(([l,k,c])=>`<div class="ic" style="--k:${c}"><small>${lb('i_'+l,tr(l))}</small><span contenteditable data-p="معلومات_الدرس.${k}" data-ph="—">${esc(dur(nm(tx(I[k])||(k==='المدة_الإجمالية'?tx(I['المدة']):''))))}</span></div>`).join('');
+  const card=(s,i,x)=>{const c=COL[i%COL.length],P=`جذاذة_مفصلة.${i}`;return `<div class="card" style="--c:${c};${x||''}"><div class="h"><span class="n">${i+1}</span>${ed(P+'.المرحلة',tx(s['المرحلة']),'اسم المرحلة')}<span class="d">${ed(P+'.المدة',dur(tx(s['المدة'])),'مدة')}</span><button class="ctl x" data-act="up" data-i="${i}" title="▲">▲</button><button class="ctl x" data-act="down" data-i="${i}" title="▼">▼</button><button class="ctl x" data-act="delStage" data-i="${i}" title="${tr('حذف المرحلة')}">✕</button></div><div class="b">${arr(s['الأنشطة']).map((a,j)=>`<div class="a"><button class="ctl x" data-act="delAct" data-i="${i}" data-j="${j}" title="${tr('حذف النشاط')}">✕</button><b>${ed(`${P}.الأنشطة.${j}.عنوان_النشاط`,tx(a['عنوان_النشاط']),'عنوان النشاط')}${a['مجال_النشاط']?' <small class="dm">'+ed(P+'.الأنشطة.'+j+'.مجال_النشاط',tx(a['مجال_النشاط']),'مجال')+'</small>':''}</b><ul>${arr(a['سير_النشاط']).map((x,k)=>li(`${P}.الأنشطة.${j}.سير_النشاط.${k}`,x,'خطوة')).join('')}</ul><button class="ctl add sm" data-act="addStep" data-i="${i}" data-j="${j}">${tr('＋ خطوة')}</button></div>`).join('')}<button class="ctl add" data-act="addAct" data-i="${i}">${tr('＋ نشاط')}</button></div></div>`};
   const isCl=s=>/اختتام|ختام|خاتمة|clôture|cloture|conclusion/i.test(tx(s['المرحلة'])),ci=S.length>1?S.map(isCl).lastIndexOf(true):-1,main=S.map((s,i)=>i).filter(i=>i!==ci),h=Math.ceil(main.length/2),R=main.slice(0,h).map(i=>card(S[i],i)).join(''),Lc=main.slice(h).map(i=>card(S[i],i)).join(''),CL=ci>=0?`<div class="cl">${card(S[ci],ci)}</div>`:'';
   const goals=arr(G['الأهداف']),means=arr(M['الوسائل']);
   const lex=[['كلمات بصرية','كلمات_بصرية'],['استراتيجيات','استراتيجيات'],['قواعد','قواعد']];
@@ -453,10 +457,10 @@ $('map').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
   if(act&&act()!==false){saveAll();render(DATA)}});
 function setLx(off){document.body.classList.toggle('nolx',off);$('bLx').classList.toggle('off',off);$('bLx').lastChild.textContent=tr(off?'إظهار المعلومات الإضافية':'إخفاء المعلومات الإضافية');ls.set('gm_nolx',off?'1':'');links();fit()}
 $('bLx').onclick=()=>setLx(!document.body.classList.contains('nolx'));
-function structOf(d){let H=arr(d['هيكلة_الحصة']).map(h=>({n:tx(h['المرحلة']),d:tx(h['المدة']),a:arr(h['الأنشطة_الفرعية']).map(x=>tx(x['النشاط'])+(tx(x['المدة'])?' ('+tx(x['المدة'])+')':''))})).filter(h=>h.n);
-  if(!H.length)H=arr(d['جذاذة_مفصلة']).map(h=>({n:tx(h['المرحلة']),d:tx(h['المدة']),a:arr(h['الأنشطة']).map(x=>tx(x['عنوان_النشاط'])).filter(Boolean)})).filter(h=>h.n);return H}
+function structOf(d){let H=arr(d['هيكلة_الحصة']).map(h=>({n:tx(h['المرحلة']),d:dur(tx(h['المدة'])),a:arr(h['الأنشطة_الفرعية']).map(x=>tx(x['النشاط'])+(dur(tx(x['المدة']))?' ('+dur(tx(x['المدة']))+')':''))})).filter(h=>h.n);
+  if(!H.length)H=arr(d['جذاذة_مفصلة']).map(h=>({n:tx(h['المرحلة']),d:dur(tx(h['المدة'])),a:arr(h['الأنشطة']).map(x=>tx(x['عنوان_النشاط'])).filter(Boolean)})).filter(h=>h.n);return H}
 $('bStr').onclick=()=>{$('dSp').textContent=tr(DATA.length>1?'هيكلة الحصتين':'مراحل الحصة ومددها');
-  $('dSb').innerHTML=DATA.map(d=>{const H=structOf(d),mn=H.map(h=>parseInt((h.d.match(/\d+/)||[0])[0])||0),tot=mn.reduce((a,b)=>a+b,0),ti=tx((d['معلومات_الدرس']||{})['عنوان_الحصة'])||tr('الحصة');
+  $('dSb').innerHTML=DATA.map(d=>{const H=structOf(d),mn=H.map(h=>parseInt((h.d.match(/\d+/)||[0])[0])||0),tot=mn.reduce((a,b)=>a+b,0),ti=ttl(d)||tr('الحصة');
     return `<div class="sl"><h3>${esc(ti)}${tot?` <small style="color:#6b7690">· ${tot} ${tr('د')}</small>`:''}</h3>`+(H.length?`<div class="tb">${H.map((h,i)=>`<span style="--c:${COL[i%COL.length]};flex:${mn[i]||1}" title="${esc(h.n)}">${esc(mn[i]?mn[i]+tr('د'):'')}</span>`).join('')}</div>`+H.map((h,i)=>`<div class="st" style="--c:${COL[i%COL.length]}"><span class="n">${i+1}</span><div><b>${esc(h.n)}</b>${h.a.length?`<ul>${h.a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}</div>${h.d?`<span class="d">${esc(h.d)}</span>`:''}</div>`).join(''):'<p style="color:#6b7690">'+tr('لا توجد هيكلة في هذه الحصة.')+'</p>')+'</div>'}).join('');
   $('dS').showModal()};
 $('bPrint').onclick=()=>$('dP').showModal();
@@ -577,7 +581,7 @@ $('cloudSignup').onclick=async()=>{
 $('cloudLogout').onclick=async()=>{if(!cloudClient)return;const {error}=await cloudClient.auth.signOut();cloudMessage(error?.message||'تم تسجيل الخروج.',!!error)};
 $('cloudSave').onclick=async()=>{
   if(!cloudClient||!cloudUser)return cloudMessage('سجّل الدخول أولًا.',true);
-  const title=tx((DATA[0]?.['معلومات_الدرس']||{})['عنوان_الحصة'])||'Carte sans titre';
+  const title=ttl(DATA[0])||'Carte sans titre';
   const {error}=await cloudClient.from('lesson_maps').insert({user_id:cloudUser.id,title,content:outLang(DATA.length===1?DATA[0]:DATA)});
   cloudMessage(error?.message||'تم حفظ الخريطة في حسابك.',!!error);if(!error)loadCloudMaps();
 };
@@ -598,7 +602,7 @@ $('cloudList').onclick=async e=>{
 /* ===== history of generated maps ===== */
 const HK='gm_hist';
 const getHist=()=>{try{return JSON.parse(ls.get(HK))||[]}catch(_){return[]}};
-function pushHist(A){try{const clean=JSON.parse(JSON.stringify(A));window.__ht=Date.now();const t=A.map(d=>tx((d['معلومات_الدرس']||{})['عنوان_الحصة'])).filter(Boolean).join(' + ')||'—';
+function pushHist(A){try{const clean=JSON.parse(JSON.stringify(A));window.__ht=Date.now();const t=A.map(d=>ttl(d)).filter(Boolean).join(' + ')||'—';
   const H=getHist();H.unshift({ts:window.__ht,t,data:clean});ls.set(HK,JSON.stringify(H.slice(0,10)))}catch(_){}}
 function showHist(){const H=getHist();
   $('hb').innerHTML=H.length?H.map((h,i)=>`<div class="sl" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><div style="min-width:0"><b>${esc(h.t)}</b><br><small style="color:#6b7690">${new Date(h.ts).toLocaleString(LANG==='fr'?'fr-FR':'ar-MA')}</small></div><div class="row w" style="flex:none"><button type="button" data-h="open" data-i="${i}">${tr('فتح')}</button><button type="button" class="x" data-h="del" data-i="${i}" title="${tr('حذف')}" style="width:28px;height:28px">✕</button></div></div>`).join(''):`<p style="color:#6b7690">${tr('لا يوجد سجل بعد')}</p>`;
