@@ -26,7 +26,7 @@ La fonction vérifie le modèle, le contenu envoyé, la taille de requête, util
 6. Dans **Authentication → URL Configuration**, ajouter le domaine Vercel dans les URL autorisées. Si la confirmation par e-mail est activée, configurer aussi le lien de redirection.
 7. Redéployer le site.
 
-Ensuite, dans l'application, ouvrir **Compte / Synchronisation**, créer un compte ou se connecter, puis cliquer sur **Enregistrer la carte actuelle**. Les cartes enregistrées apparaîtront dans la liste et pourront être ouvertes depuis un autre appareil après connexion.
+À l'ouverture du site, l'écran de connexion bloque l'accès tant qu'aucune session Supabase valide n'existe. Crée ton compte, confirme l'e-mail si demandé, puis connecte-toi. La connexion est requise aussi côté API Gemini ; masquer simplement l'écran ne suffit pas. Une fois connecté, ouvrir **Compte / Synchronisation** puis cliquer sur **Enregistrer la carte actuelle**. Les cartes enregistrées apparaîtront dans la liste et pourront être ouvertes depuis un autre appareil après connexion.
 
 **Sécurité :** le fichier de configuration ne contient que la clé publique anon. Ne jamais utiliser la clé `service_role` dans le navigateur. Les politiques Row Level Security de `supabase/schema.sql` garantissent que chaque utilisateur ne voit et ne modifie que ses propres cartes.
 
