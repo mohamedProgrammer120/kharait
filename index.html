@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14264a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><title>مولّد الخرائط الذهنية للحصة — Gemini 3</title>
+<style>
+:root{--bg:#e9edf5;--ink:#1d2a44;--ac:#1d3b6e;--mut:#6b7690;--gold:#c9971c}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{position:sticky;top:0;z-index:5;background:linear-gradient(90deg,#14264a,#1d3b6e);color:#fff;box-shadow:0 2px 12px #0003;padding:8px 0 8px}
+header h1{font-size:16px;margin:0;padding:0 16px 6px;font-weight:700;display:flex;align-items:center;gap:8px}
+#bar{display:flex;gap:8px;overflow-x:auto;padding:2px 14px 4px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#bar::-webkit-scrollbar{display:none}
+#bar button{flex:none;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:68px;padding:7px 10px;border-radius:12px;font-size:11px;font-weight:600;background:#ffffff1c;color:#fff;border:1px solid #ffffff22}
+#bar button i{font-style:normal;font-size:19px;line-height:1.1}
+#bar button.p{background:linear-gradient(180deg,#f2cd6b,#e9b949);color:#1d2a44;border-color:#e9b949}
+#bar button:disabled{opacity:.4}
+@media(min-width:760px){#bar{justify-content:center;flex-wrap:wrap;overflow:visible}#bar button{flex-direction:row;gap:7px;font-size:13px;padding:8px 14px}}
+button,select,input,textarea{font:inherit}
+button{border:0;border-radius:9px;padding:8px 15px;background:#e9b949;color:#1d2a44;font-weight:700;cursor:pointer;transition:.15s}
+button:hover{filter:brightness(1.07)}button.s{background:#ffffff1f;color:#fff}.m button.s{background:#e3e8f3}button:disabled{opacity:.4;cursor:default}
+html,body{max-width:100%;overflow-x:hidden}#stage{padding:18px 12px 30px;text-align:center;overflow:hidden}#zw{margin:0 auto;position:relative}
+#zoomer{position:absolute;top:0;right:0;width:1080px;transform-origin:top right;text-align:right}
+#tag{display:inline-block;margin:0 0 10px;font-size:12px;background:#fff;color:var(--mut);padding:3px 12px;border-radius:20px}
+/* النافذة */
+dialog{position:fixed;inset:0;margin:auto;height:fit-content;direction:rtl;overflow-x:hidden;border:0;border-radius:18px;padding:0;width:min(480px,calc(100vw - 20px));max-height:calc(100dvh - 20px);overflow-y:auto;box-shadow:0 24px 70px #0006}
+dialog::backdrop{background:#0b1730b0;backdrop-filter:blur(3px)}
+.mh{background:linear-gradient(120deg,#14264a,#2a55a0);color:#fff;padding:16px 20px}.mh h2{margin:0;font-size:18px}.mh p{margin:4px 0 0;font-size:12px;opacity:.8}
+.m{padding:16px 20px 20px;display:grid;gap:14px;min-width:0}.m>*,.row>*{min-width:0}.m input,.m select,.m textarea{max-width:100%}
+.sec{display:grid;gap:6px}.sec>.l{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px}
+.sec>.l i{font-style:normal;background:var(--ac);color:#fff;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px}
+.m input[type=password],.m input[type=text],.m select,.m textarea{padding:9px 11px;border:1.5px solid #d3daea;border-radius:10px;color:var(--ink);width:100%;background:#fafbfd}
+.m input:focus,.m select:focus,.m textarea:focus{outline:0;border-color:#2a55a0;background:#fff}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.row .w{flex:none}
+.chk{font-size:12px;color:var(--mut);display:flex;gap:6px;align-items:center;flex:1}.kr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}#bForget{background:#fde7e5;color:#b3261e;padding:5px 10px;font-size:12px}
+#bEye,#bRef{background:#e3e8f3;color:var(--ink);padding:8px 11px}
+#dz{border:2px dashed #aab7d4;border-radius:14px;padding:18px;text-align:center;color:var(--mut);font-size:13px;cursor:pointer;background:#f6f8fc;transition:.15s}
+#dz.on,#dz:hover{border-color:#2a55a0;background:#eaf0fb;color:var(--ac)}#dz b{display:block;font-size:26px}
+#fl{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:#e8eefb;border-radius:20px;padding:3px 6px 3px 12px;font-size:12px;display:flex;gap:6px;align-items:center}
+.chip u{text-decoration:none;cursor:pointer;color:#b3261e;font-weight:700}
+details summary{cursor:pointer;font-size:13px;color:var(--mut)}details textarea{margin-top:6px}
+#st{font-size:13px;min-height:18px}.err{color:#b3261e}
+#bGo{padding:11px;font-size:15px;background:linear-gradient(90deg,#e9b949,#f2cd6b)}
+#dS{width:min(660px,calc(100vw - 20px))}
+.sl{border:2px solid #d9e0ee;border-radius:14px;padding:12px;margin-bottom:12px}.sl h3{margin:0 0 8px;font-size:15px}
+.tb{display:flex;height:26px;border-radius:8px;overflow:hidden;margin-bottom:10px;gap:2px}.tb span{background:var(--c);color:#fff;font-size:11px;display:grid;place-items:center;min-width:0;overflow:hidden;white-space:nowrap}
+.st{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px dashed #d9e0ee;font-size:13px}.st:first-of-type{border-top:0}
+.st .n{background:var(--c);color:#fff;border-radius:50%;width:22px;height:22px;display:grid;place-items:center;font-size:12px;flex:none}
+.st .d{margin-right:auto;background:#eef1f8;border-radius:10px;padding:0 9px;font-size:12px;white-space:nowrap;flex:none}.st ul{margin:2px 0 0;padding:0 16px 0 0;color:#445}
+span[data-ph]{display:inline-block;min-width:36px}[data-ph]:empty:before{content:attr(data-ph);color:#9aa6bd}
+.ctl{font:inherit;cursor:pointer}.ft{grid-column:1/-1;text-align:center;margin-top:14px}.add{background:#eef1f8;color:#1d3b6e;border:1.5px dashed #9fb0d3;border-radius:10px;padding:5px 14px;font-size:13px;font-weight:700}.add.sm{padding:1px 9px;font-size:11px;margin-top:4px}.card .b>.add{margin-top:8px;width:100%}
+.x{background:#fde7e5;color:#b3261e;border:0;border-radius:50%;width:20px;height:20px;padding:0;font-size:11px;line-height:1}.card .h .x{margin-right:6px;background:#ffffff33;color:#fff;width:22px;height:22px}.a{position:relative}.a>.x{position:absolute;left:0;top:2px}.box.emp .box-x{display:none}body.cap .ctl{display:none!important}
+.d:has([data-ph]:empty){}body.nolx .lx{display:none}#bLx.off{opacity:.7}
+html[dir=ltr] dialog,html[dir=ltr] #map,html[dir=ltr] .mp{direction:ltr}
+html[dir=ltr] #zoomer{right:auto;left:0;transform-origin:top left;text-align:left}
+html[dir=ltr] .box,html[dir=ltr] .box li{text-align:left}html[dir=ltr] .box li{padding-right:0;padding-left:24px}html[dir=ltr] .box li:before{right:auto;left:3px}
+html[dir=ltr] .a li{padding-right:0;padding-left:16px}html[dir=ltr] .a li:before{right:auto;left:2px}
+html[dir=ltr] .card .h .d{margin-right:0;margin-left:auto}html[dir=ltr] .card .h .x{margin-right:0;margin-left:6px}html[dir=ltr] .a>.x{left:auto;right:0}
+html[dir=ltr] .st .d{margin-right:0;margin-left:auto}html[dir=ltr] .st ul{padding:0 0 0 16px}
+
+#tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}.tp{border:2px solid #d9e0ee;border-radius:12px;background:#fff;padding:6px;font-size:12px;color:#1d2a44;display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:600}.tp.on{border-color:#e9b949;background:#fff8e1}
+.mp.lay-grid2,.mp.lay-grid3,.mp.lay-tree{display:flex;flex-direction:column;gap:20px}
+.stg{position:relative;display:grid}.stg.grid2{grid-template-columns:1fr 190px 1fr;gap:22px 0}.stg.grid2.x3{grid-template-columns:1fr 250px 1fr}.stg.grid2.x3>.oval{width:200px;min-height:130px}.stg.grid3{grid-template-columns:repeat(3,1fr);gap:22px 22px;align-items:start}.stg.tree{grid-template-columns:repeat(var(--n),1fr);gap:18px;align-items:start}
+.stg.grid2>.oval{grid-column:2;grid-row:1/span var(--rows);align-self:center;justify-self:center;width:170px;min-height:170px;padding:12px;margin:0}.stg.grid2>.oval b{font-size:17px}
+.stg.grid3>.oval{grid-row:2;grid-column:2;width:100%;max-width:240px;justify-self:center;min-height:110px;padding:12px;margin:0}
+.top{display:flex;justify-content:center}.top .oval{width:380px;min-height:90px;border-radius:18px;margin:0}.lay-tree{background:#d9f7a3!important}
+.sk-num .ttl{background:#fff;color:#0d5ba8;border:4px solid #0d5ba8;border-radius:16px}.sk-num .card{border-radius:24px;overflow:visible;margin-top:18px}.sk-num .card .h{background:#fff;color:var(--c);border:2.5px solid var(--c);border-radius:22px;margin:-18px 40px 0 46px;padding:4px 14px}.sk-num .card .h .n{position:absolute;top:-16px;inset-inline-end:-12px;width:42px;height:42px;font-size:22px;background:var(--c);color:#fff;border:3px solid #fff;box-shadow:0 2px 6px #0003}.sk-num .oval{background:#fff;color:#0d5ba8;border:6px solid #cfe3f7;box-shadow:0 0 22px #6aa7e0}
+.sk-tabs .card{border:2px solid #222;border-radius:0 10px 10px 10px;overflow:visible;margin-top:30px}.sk-tabs .card .h{background:color-mix(in srgb,var(--c) 40%,#fff);color:#111;width:fit-content;max-width:80%;margin:-31px 0 0;border:2px solid #222;border-bottom:0;border-radius:10px 10px 0 0;padding:3px 14px}.sk-tabs .card .h .n{display:none}.sk-tabs .a li:before{background:var(--c);border-radius:2px}.sk-tabs .oval{background:#fff;color:#111;border:3px solid #222;border-radius:50px}
+.sk-dashed .card{border:2.5px dashed #222;border-radius:4px}.sk-dashed .card .h{background:#fff;color:#111;border-bottom:2px dashed #222}.sk-dashed .card .h .n{background:#222;color:#fff}.sk-dashed .a b{color:#111}.sk-dashed .oval{background:#fff;color:#111;border:3px dotted #222}
+.sk-wavy .card{border:3px solid #666;border-radius:26px 12px 26px 12px;background:#fff7f5}.sk-wavy .card .h{background:transparent;color:#222;border-bottom:2px solid #666}.sk-wavy .card .h .n{background:#666;color:#fff}.sk-wavy .a b{color:#333}.sk-wavy .oval{background:#fff;color:#333;border:4px solid #666}.sk-wavy .oval:before{content:"🧠";font-size:34px}
+.sk-sketch .card{border:2.5px solid #111;border-radius:3px;box-shadow:-5px 5px 0 #111;margin:0 5px 5px 0}.sk-sketch .card .h{background:#fff;color:#111;border-bottom:2px solid #111}.sk-sketch .card .h .n{background:#111;color:#fff}.sk-sketch .a b{color:#111}.sk-sketch .oval{background:#fff;color:#111;border:4px solid #111}.sk-sketch .oval:before{content:"💡";font-size:34px}
+.sk-soft .card{background:#fdf6f0;border:2px solid #3a2a2a;border-radius:18px}.sk-soft .card .h{background:transparent;color:#3a2a2a;border-bottom:1.5px solid #3a2a2a}.sk-soft .card .h .n{background:#3a2a2a;color:#fff}.sk-soft .a b{color:#3a2a2a}.sk-soft .oval{background:#fdf6f0;color:#3a2a2a;border:2px solid #3a2a2a;border-radius:18px}
+.mp.sk-sticky{background:#f1f1ee}.sk-sticky .card{border:1.5px solid #333;border-radius:22px;overflow:visible;margin-top:16px}.sk-sticky .card .h{background:color-mix(in srgb,var(--c) 45%,#fff);color:#111;width:fit-content;margin:-15px auto 0;border:1.5px solid #333;border-radius:9px;padding:2px 20px}.sk-sticky .card .h .n{display:none}.sk-sticky .a b{color:#222}.sk-sticky .oval{background:transparent;color:#111;border:0}
+.sk-plain .card{border:2px solid #111;border-radius:3px}.sk-plain .card .h{background:#fff;color:#111;border-bottom:2px solid #111}.sk-plain .card .h .n{background:#111;color:#fff}.sk-plain .a b{color:#111}.sk-plain .oval{background:#fff;color:#111;border:4px solid #7ee;border-radius:18px;min-height:120px}
+.mp.sk-concept{background-image:linear-gradient(#0001 1px,transparent 1px),linear-gradient(90deg,#0001 1px,transparent 1px);background-size:22px 22px}.sk-concept .card{border:2.5px solid #111;border-radius:6px;box-shadow:5px 5px 0 #111}.sk-concept .card .h{background:color-mix(in srgb,var(--c) 30%,#fff);color:#111;border-bottom:2px solid #111}.sk-concept .card .h .n{background:#111;color:#fff}.sk-concept .a b{color:#111}.sk-concept .oval{background:#fff;color:#111;border:3px solid #111;border-radius:8px;min-height:110px}
+.sk-pill .card{border:0;background:transparent;overflow:visible}.sk-pill .card .h{background:#fff;color:#111;border:3px solid var(--c);border-radius:24px}.sk-pill .card .h .n{background:var(--c);color:#fff}.sk-pill .a b{color:#111}.sk-pill .a li{border:1.5px solid var(--c);border-radius:14px;padding:1px 10px;margin:3px 0}.sk-pill .a li:before{display:none}.sk-pill .oval{background:#fff;color:#111;border:4px solid #b9aea5;border-radius:26px}
+.bx{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:2px solid #1d3b6e;border-radius:12px;overflow:hidden;background:#fff;align-items:stretch}.mp>.bx{grid-column:1/-1}
+.bx .box{border:0;border-radius:0;background:#fff;padding:0 14px 10px;border-inline-start:1.5px solid #cfd8ea}.bx .box:first-child{border-inline-start:0}.bx .box h3{background:#1d3b6e;color:#fff;margin:0 -14px 8px;padding:6px 10px}.bx .box.lx h3{background:#2c4e86}.bx .box.lx b{color:#2c4e86}
+.cl{grid-column:1/-1;width:48%;margin:6px auto 0;position:relative;z-index:1}
+/* الخريطة */
+#map{position:relative;width:1080px;direction:rtl;display:flex;flex-direction:column;gap:20px}
+.mp{position:relative;padding:20px 24px 26px;background:#fff;direction:rtl;display:grid;grid-template-columns:1fr 330px 1fr;gap:0 44px;border-radius:16px;box-shadow:0 6px 30px #1d2a4422}
+.ttl{grid-column:1/-1;background:linear-gradient(90deg,#14264a,#1d3b6e);color:#fff;text-align:center;border-radius:14px;padding:12px 18px;font-size:22px;font-weight:700;margin-bottom:12px}
+.info{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px}
+.ic{border:2px solid var(--k);border-radius:12px;padding:6px 10px 7px;text-align:center;background:#fff;box-shadow:0 2px 0 var(--k)}
+.ic small{display:block;color:var(--k);font-size:11px;font-weight:700;border-bottom:1px dashed var(--k);padding-bottom:2px;margin-bottom:3px}
+.ic span{font-size:14px;font-weight:700;line-height:1.5;display:block}
+.col{display:flex;flex-direction:column;justify-content:space-around;gap:18px}
+.cen{display:flex;flex-direction:column;justify-content:center;gap:22px}
+.card,.box,.oval{position:relative;z-index:1}
+.card{border:3px solid var(--c);border-radius:14px;background:#fff;overflow:hidden;font-size:13px;line-height:1.7}
+.card .h{background:var(--c);color:#fff;padding:7px 12px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
+.card .h .n{background:#fff;color:var(--c);border-radius:50%;width:24px;height:24px;display:grid;place-items:center;font-size:13px;flex:none}
+.card .h .d{margin-right:auto;background:#ffffff33;border-radius:10px;padding:0 9px;font-size:12px;white-space:nowrap}
+.card .b{padding:8px 12px 10px}.a{margin-top:6px}.a b{color:var(--c);display:block}
+.a ul{margin:2px 0 0;padding:0;list-style:none}.a li{padding-right:16px;position:relative}.a li:before{content:"";position:absolute;right:2px;top:.62em;width:6px;height:6px;border:1.5px solid var(--c);border-radius:1px}
+.oval{margin:0 auto;width:310px;min-height:190px;border-radius:50%;background:#1d3557;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 34px;border:6px solid #e9b949}
+.oval b{font-size:21px;line-height:1.4}.oval small{opacity:.85;margin-top:8px;font-size:12px;line-height:1.6}
+.box{border:3px solid var(--gold);border-radius:14px;padding:10px 14px 12px;font-size:13px;line-height:1.75;background:#fffdf6;text-align:right}
+.box h3{margin:0 0 6px;font-size:15px;color:#9a6f08;text-align:center}.box p{margin:3px 0}
+.box ul{margin:0;padding:0;list-style:none}.box li{position:relative;padding-right:24px;margin:3px 0;text-align:right}
+.box li:before{content:"";position:absolute;right:3px;top:.5em;width:11px;height:11px;border-radius:50%;background:var(--gold)}
+.lx{background:#f3f6fb;border-color:#5b7db1}.lx h3{color:#2c4e86}.lx b{color:#2c4e86}
+svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height:100%}
+[contenteditable]:focus{outline:2px dashed #e9b949;outline-offset:2px}
+@media print{[data-ph]:empty:before{content:''}.ctl{display:none!important}.box.emp{display:none}.d:has([data-ph]:empty){display:none}header,#tag,#stage>br,dialog{display:none!important}html,body{background:#fff;height:auto;overflow:visible}#stage{padding:0!important;overflow:visible!important}.mp{box-shadow:none;border-radius:0;break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧠 مولّد الخرائط الذهنية للحصة</h1>
+  <nav id="bar">
+    <button id="bLang"><i>🌐</i><span>Français</span></button>
+    <button id="bTpl"><i>🧩</i>النماذج</button>
+    <button class="p" id="bOpen"><i>✨</i>توليد خريطة</button>
+    <button id="bStr"><i>🧱</i>هيكلة الحصة</button>
+    <button id="bLx"><i>🗂</i><span>إخفاء المعلومات الإضافية</span></button>
+    <button id="bPng"><i>🖼</i>صورة PNG</button><button id="bPdf"><i>📄</i>تصدير PDF</button><button id="bHist"><i>🕘</i>السجل</button>
+    <button id="bPrint"><i>🖨</i>طباعة / PDF</button>
+    <button id="bCopy"><i>📋</i>نسخ JSON</button>
+    <button id="bJson"><i>⬇</i>تنزيل JSON</button>
+    <button id="bInst"><i>📲</i>تثبيت التطبيق</button>
+  </nav>
+</header>
+<dialog id="dS"><div class="mh"><h2>هيكلة الحصة</h2><p id="dSp"></p></div><div class="m"><div id="dSb"></div><button type="button" onclick="$('dS').close()">إغلاق</button></div></dialog>
+<dialog id="dP"><div class="mh"><h2>الطباعة</h2><p>تُضبَّط الخريطة (أو الخريطتان) تلقائيًا في صفحة A4 واحدة · في الأفقي تتجاور الخريطتان: الأولى يمينًا والثانية يسارًا</p></div><div class="m"><label class="sec"><span class="l">🎨 ألوان الطباعة</span><select id="pm"><option value="c">ملوّنة</option><option value="g">رمادية (بدون ألوان)</option><option value="b">أبيض وأسود — توفير الحبر</option></select></label><button type="button" onclick="doPrint('p')">📄 A4 عمودي (Portrait)</button><button type="button" class="s" onclick="doPrint('l')">🖥 A4 أفقي (Landscape)</button></div></dialog><dialog id="dT"><div class="mh"><h2>نموذج الخريطة</h2><p>اختر شكل الخريطة — يُطبَّق على كل الخرائط</p></div><div class="m"><div id="tg"></div><button type="button" onclick="$('dT').close()">إغلاق</button></div></dialog>
+<dialog id="dI"><div class="mh"><h2 id="dIt">تثبيت التطبيق</h2></div><div class="m"><div id="dIb" style="line-height:1.9;font-size:14px"></div><button type="button" onclick="$('dI').close()">حسنًا</button></div></dialog>
+<dialog id="dH"><div class="mh"><h2>سجل الخرائط</h2><p>آخر 10 خرائط مولَّدة في هذا المتصفح</p></div><div class="m"><div id="hb"></div><div class="row"><button type="button" class="s" id="hClr" style="background:#fde7e5;color:#b3261e">مسح السجل</button><button type="button" onclick="$('dH').close()">إغلاق</button></div></div></dialog>
+<div id="stage">
+  <div id="tag"></div><br>
+  <div id="zw"><div id="zoomer"><div id="map"></div></div></div>
+</div>
+
+<dialog id="dlg">
+  <div class="mh"><h2>توليد خريطة جديدة</h2><p>ارفع ملف الحصة، وسيحلله Gemini ويرسم الخريطة مباشرة</p></div>
+  <div class="m">
+    <div class="sec"><div class="l"><i>1</i> مفتاح Gemini API</div>
+      <div class="row"><input id="key" type="password" autocomplete="off" placeholder="AIza…" dir="ltr"><button class="w" id="bEye" type="button" title="إظهار/إخفاء">👁</button></div>
+      <div class="kr"><label class="chk"><input type="checkbox" id="rem"> تذكّر المفتاح في هذا المتصفح فقط</label><button type="button" id="bForget">🗑 نسيان المفتاح</button></div><small style="color:#6b7690;font-size:11px;line-height:1.6">⚠ يُحفظ المفتاح كنص عادي في هذا المتصفح. لا تفعّل التذكّر على جهاز مشترك، ويُستحسن تقييده بنطاق موقعك (HTTP referrer) من لوحة Google AI Studio.</small></div>
+    <div class="sec"><div class="l"><i>2</i> النموذج (الجيل الثالث: Flash / Flash-Lite)</div>
+      <div class="row"><select id="mdl" dir="ltr"></select><button class="w" id="bRef" type="button" title="جلب النماذج المتاحة لمفتاحك">↻</button></div></div>
+    <div class="sec"><div class="l"><i>3</i> ملفات الحصة</div>
+      <div id="dz"><b>📄</b>اسحب الملفات هنا أو اضغط للاختيار<br><small>PDF · صور · نص</small></div>
+      <input id="fi" type="file" multiple accept=".pdf,image/*,.txt,.md,.json" hidden>
+      <div id="fl"></div><label class="chk" id="sepw" hidden><input type="checkbox" id="sep" checked> خريطة مستقلة لكل ملف (ملفان ← خريطتان في ورقة واحدة)</label></div>
+    <details><summary>خيارات إضافية</summary><label class="sec" style="margin-top:8px"><span class="l">المستوى الدراسي</span><select id="lvl"><option value="p">ابتدائي</option><option value="c">إعدادي</option><option value="h">ثانوي</option></select></label>
+      <textarea id="note" rows="2" placeholder="ملاحظات (مثل: القسم المشترك مستويان 1 و2)"></textarea>
+      <textarea id="js" rows="3" dir="ltr" placeholder='أو الصق JSON جاهزًا: {"معلومات_الدرس":{…}}'></textarea></details>
+    <div id="st"></div>
+    <div class="row"><button id="bGo" type="button">✨ توليد الخريطة</button><button class="s w" id="bX" type="button" style="background:#e3e8f3;color:#1d2a44">إغلاق</button></div>
+  </div>
+</dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+const MODELS=['gemini-3.6-flash','gemini-3.5-flash','gemini-3.5-flash-lite','gemini-3.1-flash-lite','gemini-3-flash-preview'];
+const COL=['#e08a1e','#2f6fd0','#2e9a5b','#7b3fb0','#d6336c','#12877f','#a8561a','#4a5fc1'];
+let DATA=null,files=[];
+const st=(m,e)=>{$('st').textContent=tr(m||'');$('st').className=e?'err':''};
+const ls={get:k=>{try{return localStorage.getItem(k)}catch(_){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(_){}},del:k=>{try{localStorage.removeItem(k)}catch(_){}}};
+let LANG=ls.get('gm_lang')||'ar';
+const FR={
+'🧠 مولّد الخرائط الذهنية للحصة':'🧠 Générateur de cartes mentales de séance','توليد خريطة':'Générer une carte','هيكلة الحصة':'Structure de la séance','إخفاء المعلومات الإضافية':'Masquer les informations complémentaires','إظهار المعلومات الإضافية':'Afficher les informations complémentaires','صورة PNG':'Image PNG','طباعة / PDF':'Imprimer / PDF','نسخ JSON':'Copier le JSON','تنزيل JSON':'Télécharger le JSON','تثبيت التطبيق':"Installer l'appli",'إغلاق':'Fermer','الطباعة':'Impression',
+'تُضبَّط الخريطة (أو الخريطتان) تلقائيًا في صفحة A4 واحدة · في الأفقي تتجاور الخريطتان: الأولى يمينًا والثانية يسارًا':"La carte (ou les deux cartes) est ajustée automatiquement sur une page A4 · en paysage, les deux cartes sont côte à côte : la première à gauche, la seconde à droite",
+'📄 A4 عمودي (Portrait)':'📄 A4 portrait','🖥 A4 أفقي (Landscape)':'🖥 A4 paysage','حسنًا':'OK','النماذج':'Modèles','نموذج الخريطة':'Modèle de carte','اختر شكل الخريطة — يُطبَّق على كل الخرائط':'Choisissez la forme de la carte — appliquée à toutes les cartes','🎨 ألوان الطباعة':'🎨 Couleurs à l\'impression','ملوّنة':'En couleurs','رمادية (بدون ألوان)':'Niveaux de gris','أبيض وأسود — توفير الحبر':'Noir et blanc — économie d\'encre',
+'مثال توضيحي — اضغط «توليد خريطة» لتوليد خريطة حصتك':'Exemple — cliquez sur « Générer une carte » pour créer la carte de votre séance','خريطتان في ورقة واحدة':'Deux cartes sur une même feuille','آخر خريطة مولَّدة (محفوظة في هذا المتصفح)':'Dernière carte générée (enregistrée dans ce navigateur)',
+'توليد خريطة جديدة':'Générer une nouvelle carte','ارفع ملف الحصة، وسيحلله Gemini ويرسم الخريطة مباشرة':"Téléversez le fichier de la séance : Gemini l'analyse et trace la carte",'مفتاح Gemini API':'Clé API Gemini','تذكّر المفتاح في هذا المتصفح فقط':'Mémoriser la clé dans ce navigateur uniquement','🗑 نسيان المفتاح':'🗑 Oublier la clé','النموذج (الجيل الثالث: Flash / Flash-Lite)':'Modèle (génération 3 : Flash / Flash-Lite)','ملفات الحصة':'Fichiers de la séance','اسحب الملفات هنا أو اضغط للاختيار':'Glissez les fichiers ici ou cliquez pour choisir','PDF · صور · نص':'PDF · images · texte','خريطة مستقلة لكل ملف (ملفان ← خريطتان في ورقة واحدة)':'Une carte par fichier (2 fichiers → 2 cartes sur la même feuille)','خيارات إضافية':'Options supplémentaires','✨ توليد الخريطة':'✨ Générer la carte',
+'حذف المرحلة':"Supprimer l'étape",'حذف النشاط':"Supprimer l'activité",'إظهار/إخفاء':'Afficher/masquer','جلب النماذج المتاحة لمفتاحك':'Récupérer les modèles disponibles pour votre clé','ملاحظات (مثل: القسم المشترك مستويان 1 و2)':'Remarques (ex. classe à niveaux multiples 1 et 2)','أو الصق JSON جاهزًا: {"معلومات_الدرس":{…}}':'Ou collez un JSON prêt : {"informations_lecon":{…}}',
+'أدخل المفتاح أولًا':"Saisissez d'abord la clé",'جارٍ جلب النماذج…':'Récupération des modèles…','لم يُعثر على نماذج flash من الجيل الثالث لهذا المفتاح':'Aucun modèle Flash de génération 3 pour cette clé','تم:':'Terminé :','نموذجًا':'modèle(s)','JSON غير صالح:':'JSON invalide :','أدخل مفتاح Gemini':'Saisissez la clé Gemini','ارفع ملفًا واحدًا على الأقل':'Téléversez au moins un fichier','حجم الملفات يتجاوز 18 م.ب (حد الإرسال المباشر)':"La taille des fichiers dépasse 18 Mo (limite d'envoi direct)",'اختر ملفين فقط، أو ألغِ خيار «خريطة مستقلة لكل ملف»':'Choisissez 2 fichiers au maximum, ou décochez « Une carte par fichier »','جارٍ التحليل بـ':'Analyse avec','(ملفان بالتوازي)':'(2 fichiers en parallèle)','… قد يستغرق دقيقة':'… cela peut prendre une minute','تعذّر التوليد:':'Échec de la génération :','ردّ فارغ':'Réponse vide','تعذّر تحليل ملف:':"Échec de l'analyse d'un fichier :",'م.ب':'Mo','تم نسيان المفتاح':'Clé oubliée','✔ تم النسخ':'✔ Copié',
+'خطاطة ذهنية —':'Carte mentale —','المادة':'Matière','المستوى':'Niveau','الوحدة':'Unité','الأسبوع':'Semaine','الحصة':'Séance','المدة':'Durée','عند نهاية الحصة':'À la fin de la séance','الوسائل':'Moyens didactiques','معلومات إضافية':'Informations complémentaires','كلمات بصرية':'Mots-outils','استراتيجيات':'Stratégies','قواعد':'Règles',
+'عنوان الحصة':'Titre de la séance','اسم المرحلة':"Nom de l'étape",'مدة':'durée','عنوان النشاط':"Titre de l'activité",'خطوة':'étape','الصيغة الافتتاحية':'Formule introductive','هدف':'objectif','وسيلة':'moyen','اكتب هنا…':'Écrivez ici…','＋ مرحلة':'＋ Étape','＋ نشاط':'＋ Activité','＋ خطوة':'＋ Phase','＋ هدف':'＋ Objectif','＋ وسيلة':'＋ Moyen',
+'مرحلة جديدة':'Nouvelle étape','نشاط جديد':'Nouvelle activité','خطوة جديدة':'Nouvelle phase','هدف جديد':'Nouvel objectif','وسيلة جديدة':'Nouveau moyen','حذف هذه المرحلة؟':'Supprimer cette étape ?','حذف هذا النشاط؟':'Supprimer cette activité ?','د':'min',
+'هيكلة الحصتين':'Structure des deux séances','مراحل الحصة ومددها':'Étapes de la séance et durées','لا توجد هيكلة في هذه الحصة.':'Aucune structure pour cette séance.',
+'التثبيت يحتاج رابطًا https':"L'installation nécessite un lien https",'المتصفحات لا تثبّت التطبيقات من ملف محلي. ارفع ملفات التطبيق (index.html وmanifest.webmanifest وsw.js والأيقونتين) إلى أي استضافة ثابتة مجانية مثل Netlify Drop أو GitHub Pages أو Cloudflare Pages، ثم افتح الرابط واضغط «تثبيت التطبيق» من الهاتف أو الحاسوب.':"Les navigateurs n'installent pas une appli depuis un fichier local. Déposez les fichiers (index.html, manifest.webmanifest, sw.js et les deux icônes) sur un hébergement statique gratuit (Netlify Drop, GitHub Pages ou Cloudflare Pages), ouvrez le lien puis cliquez sur « Installer l'appli » depuis le téléphone ou l'ordinateur.",
+'التثبيت على آيفون / آيباد':"Installation sur iPhone / iPad",'في Safari: اضغط زر <b>المشاركة</b> ⬆ ثم <b>إضافة إلى الشاشة الرئيسية</b>.':"Dans Safari : touchez <b>Partager</b> ⬆ puis <b>Sur l'écran d'accueil</b>.",'التثبيت من قائمة المتصفح':'Installation depuis le menu du navigateur','<b>أندرويد (Chrome):</b> القائمة ⋮ ثم «تثبيت التطبيق».<br><b>ويندوز (Chrome / Edge):</b> أيقونة التثبيت في شريط العنوان، أو القائمة ← «تثبيت».<br>إن لم يظهر الخيار فتأكد أنك تفتح الرابط عبر https.':"<b>Android (Chrome) :</b> menu ⋮ puis « Installer l'application ».<br><b>Windows (Chrome / Edge) :</b> icône d'installation dans la barre d'adresse, ou menu → « Installer ».<br>Si l'option n'apparaît pas, vérifiez que le lien est en https.",
+'تعذّر تحميل مكتبة التصدير (تحقق من الاتصال)':"Impossible de charger la bibliothèque d'export (vérifiez la connexion)"};
+Object.assign(FR,{'تصدير PDF':'Export PDF','السجل':'Historique','سجل الخرائط':'Historique des cartes','آخر 10 خرائط مولَّدة في هذا المتصفح':'10 dernières cartes générées dans ce navigateur','مسح السجل':"Effacer l'historique",'المستوى الدراسي':'Cycle scolaire','ابتدائي':'Primaire','إعدادي':'Collège','ثانوي':'Lycée','لا يوجد سجل بعد':"Aucun historique pour l'instant",'فتح':'Ouvrir','حذف':'Supprimer','مسح كل السجل؟':"Effacer tout l'historique ?",'جارٍ إنشاء PDF…':'Création du PDF…','إعادة المحاولة تلقائيًا…':'Nouvelle tentative automatique…','⚠ يُحفظ المفتاح كنص عادي في هذا المتصفح. لا تفعّل التذكّر على جهاز مشترك، ويُستحسن تقييده بنطاق موقعك (HTTP referrer) من لوحة Google AI Studio.':"⚠ La clé est enregistrée en clair dans ce navigateur. Ne l'activez pas sur un appareil partagé et limitez-la à votre domaine (HTTP referrer) dans Google AI Studio."});
+const tr=s=>LANG==='fr'&&FR[s]!=null?FR[s]:s;
+const FRK={informations_lecon:'معلومات_الدرس',structure_seance:'هيكلة_الحصة',objectifs_seance:'أهداف_الحصة',moyens_didactiques:'الوسائل_الديداكتيكية',fiche_detaillee:'جذاذة_مفصلة',lexique_seance:'معلومات_إضافية',matiere:'المادة',niveau:'المستوى',periode:'الفترة',unite:'الوحدة',semaine:'الأسبوع',seance:'الحصة',jour:'اليوم',titre_seance:'عنوان_الحصة',duree_totale:'المدة_الإجمالية',donnees_supplementaires:'بيانات_إضافية',nom_fichier:'اسم_الملف',source_information:'مصدر_المعلومة',etape:'المرحلة',duree:'المدة',sous_activites:'الأنشطة_الفرعية',activite:'النشاط',formule_introductive:'الصيغة_الافتتاحية',objectifs:'الأهداف',moyens:'الوسائل',moyen:'الوسيلة',usage:'الاستعمال',activites:'الأنشطة',titre_activite:'عنوان_النشاط',deroulement:'سير_النشاط',support_activite:'مجال_النشاط',mots_outils:'كلمات_بصرية',strategies:'استراتيجيات',regles:'قواعد',informations_complementaires:'معلومات_إضافية'};
+const ARK=Object.fromEntries(Object.entries(FRK).map(([a,b])=>[b,a]));
+const mapKeys=(o,m)=>Array.isArray(o)?o.map(x=>mapKeys(x,m)):(o&&typeof o==='object')?Object.fromEntries(Object.entries(o).map(([k,v])=>[Object.hasOwn(m,k)?m[k]:k,mapKeys(v,m)])):o;
+const canon=o=>mapKeys(o,FRK),outLang=o=>LANG==='fr'?mapKeys(o,ARK):o;
+function trDom(){const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement.closest('#map,#dIb,#dSb,#fl,#st,#tag,script,style')?2:1}),L=[];let n;while(n=w.nextNode())L.push(n);
+  L.forEach(n=>{const o=n.__ar!==undefined?n.__ar:n.nodeValue,k=o.trim();if(FR[k]==null)return;if(LANG==='fr'){n.__ar=o;n.nodeValue=o.replace(k,FR[k])}else if(n.__ar!==undefined){n.nodeValue=n.__ar;delete n.__ar}});
+  document.querySelectorAll('[placeholder],[title]').forEach(e=>['placeholder','title'].forEach(a=>{if(!e.hasAttribute(a))return;const da='data-ar-'+a,o=e.hasAttribute(da)?e.getAttribute(da):e.getAttribute(a);if(FR[o]==null)return;if(LANG==='fr'){e.setAttribute(da,o);e.setAttribute(a,FR[o])}else if(e.hasAttribute(da)){e.setAttribute(a,o);e.removeAttribute(da)}}))}
+const PROMPT_FR=`Tu es un analyste pédagogique spécialisé dans les fiches d'enseignement explicite de l'école primaire marocaine. Les fichiers joints concernent UNE seule séance. Produis **un seul objet JSON valide** (sans texte ni balises \u0060\u0060\u0060 autour), avec exactement ces six clés principales, dans cet ordre, sans en ajouter d'autres :
+{"informations_lecon":{},"structure_seance":[],"objectifs_seance":{},"moyens_didactiques":{},"fiche_detaillee":[],"informations_complementaires":{}}
+Rédige toutes les valeurs en français (si la source est déjà en français, reprends ses formulations). Les mots, titres de textes et consignes cités textuellement d'une source arabe restent en arabe, entre guillemets, sans traduction.
+Règles : n'invente rien ; ce que la source ne dit pas : « Non mentionné dans la source » (les durées non mentionnées restent "") ; les textes longs ne sont pas recopiés (titre seulement).
+- informations_lecon : {"matiere","niveau","unite","semaine","seance","jour","titre_seance","duree_totale","donnees_supplementaires"}
+- structure_seance : tirée uniquement de la diapositive de structure : [{"etape","duree","sous_activites":[{"activite","duree"}]}]
+- objectifs_seance : {"formule_introductive":"Au moins 80 % des apprenants seront capables de :","objectifs":["…"]}
+- moyens_didactiques : {"moyens":[{"moyen","usage"}]} (un élément par moyen, sans doublons)
+- fiche_detaillee : un élément par étape, dans l'ordre : [{"etape","duree","activites":[{"titre_activite","support_activite","duree","deroulement":[]}]}]. Une nouvelle activité commence dès que la consigne, la tâche ou le support change. Ajoute l'étape de clôture si elle existe. **Deux phases au maximum par activité dans deroulement** : si les phases sont liées, résume-les en deux, en regroupant les consécutives dans une phrase brève (5 à 14 mots) reliée par « puis » ou une virgule, **sans point, point-virgule, tiret ni flèche à l'intérieur d'une phase** (le visualiseur découpe le texte à ces signes), sans numérotation, et sans commencer par « L'enseignant demande… ».
+- informations_complementaires : {"mots_outils":[],"strategies":[],"regles":[]} (0 à 8 éléments par case, uniquement d'après la source).
+  • mots_outils : mots courts et fréquents ou mots du lexique de la séance à reconnaître ; un mot par élément.
+  • strategies : **stratégies pédagogiques et didactiques** mises en œuvre dans la séance, **pas du vocabulaire** ; déduis-les des activités selon la matière : langues (arabe, français…) → stratégies de lecture, de compréhension, d'écoute, d'expression orale et d'écriture (ex. « Anticiper le contenu du texte d'après le titre », « Revenir au texte pour trouver la réponse ») ; mathématiques → modélisation, pratique guidée, pratique autonome, quand elles apparaissent ; activités scientifiques → démarche d'investigation pour parvenir aux résultats et conclusions (problème, hypothèses, expérimentation et observation, conclusion) ; autres matières → ce qui convient à leur nature et figure réellement dans les activités. Chaque élément est une formule brève (8 mots au plus).
+  • regles : règle de langue, d'orthographe, de phonologie, de mathématiques ou de sciences visée, en une phrase brève.
+  Si rien n'est indiqué pour une case, laisse le tableau vide.
+Produis maintenant uniquement le JSON.`;
+const DEMO_FR={__demo:1,"معلومات_الدرس":{"المادة":"Français","المستوى":"CE1 et CE2","الوحدة":"Unité 1","الأسبوع":"Semaine 1","الحصة":"Séance 4","المدة_الإجمالية":"140 min","عنوان_الحصة":"Le premier jour d'école"},
+"أهداف_الحصة":{"الصيغة_الافتتاحية":"Au moins 80 % des apprenants seront capables de :","الأهداف":["Raconter des passages de l'histoire et reconnaître des formules de salutation","Reconnaître, prononcer et écrire le son [d]","Lire un court passage avec fluidité"]},
+"الوسائل_الديداكتيكية":{"الوسائل":[{"الوسيلة":"Vidéoprojecteur","الاستعمال":"afficher le texte"},{"الوسيلة":"Cahier de l'apprenant","الاستعمال":"exercices"}]},
+"معلومات_إضافية":{"كلمات_بصرية":["moi","mon nom","Madjd"],"استراتيجيات":["Anticiper le contenu du texte d'après le titre"],"قواعد":["Le « d » final peut ne pas se prononcer"]},
+"جذاذة_مفصلة":[{"المرحلة":"Activités routinières","المدة":"10 min","الأنشطة":[{"عنوان_النشاط":"Mots-outils","سير_النشاط":["Lecture des mots au tableau","Lecture collective puis individuelle"]},{"عنوان_النشاط":"Dictée routinière","سير_النشاط":["Dictée de deux nouveaux prénoms sur les ardoises"]}]},
+{"المرحلة":"Écoute et expression orale","المدة":"30 min","الأنشطة":[{"عنوان_النشاط":"Histoire « Le premier jour d'école »","سير_النشاط":["Récit des passages avec mimiques et gestes","Reformulation collective puis individuelle"]},{"عنوان_النشاط":"Situation de communication","سير_النشاط":["Salutations et présentation de soi en binômes"]}]},
+{"المرحلة":"Lecture 1 : le son [d]","المدة":"40 min","الأنشطة":[{"عنوان_النشاط":"Reconnaître le son [d]","سير_النشاط":["Repérage du son puis lien avec la graphie"]},{"عنوان_النشاط":"Lecture","سير_النشاط":["Lecture de syllabes avec le son [d]"]}]},
+{"المرحلة":"Lecture 2 : fluidité","المدة":"40 min","الأنشطة":[{"عنوان_النشاط":"Rappel","سير_النشاط":["Titre du texte et sujet"]},{"عنوان_النشاط":"Lecture suivie","سير_النشاط":["Lecture des passages puis questions de compréhension"]}]},
+{"المرحلة":"Clôture de la séance","المدة":"fin de séance","الأنشطة":[{"عنوان_النشاط":"Qu'avons-nous appris aujourd'hui ?","سير_النشاط":["Reformulation du dernier passage et lecture du son [d]"]}]}]};
+function applyLang(){const fr=LANG==='fr',h=document.documentElement;h.lang=LANG;h.dir=fr?'ltr':'rtl';document.title=fr?'Générateur de cartes mentales de séance — Gemini 3':'مولّد الخرائط الذهنية للحصة — Gemini 3';trDom();
+  $('bLang').lastChild.textContent=fr?'العربية':'Français';showF();
+  if(DATA&&DATA[0]&&DATA[0].__demo)DATA=[fr?DEMO_FR:DEMO];
+  render(DATA);setLx(document.body.classList.contains('nolx'))}
+$('bLang').onclick=()=>{LANG=LANG==='fr'?'ar':'fr';ls.set('gm_lang',LANG);applyLang()};
+
+function fillModels(list){const cur=ls.get('gm_model')||list[0];$('mdl').innerHTML=list.map(m=>`<option${m===cur?' selected':''}>${m}</option>`).join('')}
+fillModels(MODELS);
+$('key').value=ls.get('gm_key')||'';$('rem').checked=!!ls.get('gm_key');
+$('bOpen').onclick=()=>{$('dlg').showModal();if($('key').value.trim()&&!window.__mf){window.__mf=1;$('bRef').click()}};$('bX').onclick=()=>$('dlg').close();
+const showF=()=>{$('sepw').hidden=files.length<2;$('fl').innerHTML=files.map((f,i)=>`<span class="chip">${esc(f.name)} · ${(f.size/1048576).toFixed(1)} ${tr('م.ب')} <u data-i="${i}">✕</u></span>`).join('')};
+$('fl').onclick=e=>{const i=e.target.dataset.i;if(i!=null){files.splice(+i,1);showF()}};
+const addF=l=>{files.push(...l);showF()};
+$('dz').onclick=()=>$('fi').click();$('fi').onchange=e=>{addF([...e.target.files]);e.target.value=''};
+$('dz').ondragover=e=>{e.preventDefault();$('dz').classList.add('on')};$('dz').ondragleave=()=>$('dz').classList.remove('on');
+$('dz').ondrop=e=>{e.preventDefault();$('dz').classList.remove('on');addF([...e.dataTransfer.files])};
+$('bEye').onclick=()=>{$('key').type=$('key').type==='password'?'text':'password'};
+$('bRef').onclick=async()=>{const k=$('key').value.trim();if(!k)return st('أدخل المفتاح أولًا',1);st('جارٍ جلب النماذج…');
+  try{const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':k}});const j=await r.json();if(!r.ok)throw new Error(j.error?.message||r.status);
+    const l=(j.models||[]).map(m=>m.name.replace('models/','')).filter(n=>/^gemini-3(\.\d+)?-flash(-lite)?(-preview)?$/.test(n)||/^gemini-3(\.\d+)?-flash(-lite)?-preview-\d/.test(n));
+    if(!l.length)throw new Error('لم يُعثر على نماذج flash من الجيل الثالث لهذا المفتاح');fillModels(l);st(tr('تم:')+' '+l.length+' '+tr('نموذجًا'))}catch(e){st(e.message,1)}};
+
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tx=x=>x==null?'':typeof x==='string'||typeof x==='number'?String(x):Array.isArray(x)?x.map(tx).join('، '):Object.values(x).map(tx).filter(Boolean).join(' — ');
+const arr=x=>Array.isArray(x)?x:x?[x]:[];
+
+const PROMPT_AR=`أنت محلّل تربوي متخصّص في جذاذات التعليم الصريح بالابتدائي المغربي. المرفقات خاصة بحصة واحدة. أخرج **كائن JSON واحدًا صالحًا فقط** (دون أي نص أو علامات \`\`\` خارجه) بستة مفاتيح رئيسية بهذا الترتيب، ولا تضف غيرها:
+{"معلومات_الدرس":{},"هيكلة_الحصة":[],"أهداف_الحصة":{},"الوسائل_الديداكتيكية":{},"جذاذة_مفصلة":[],"معلومات_إضافية":{}}
+قواعد: لا تخترع شيئًا، وما لم يرد اكتب فيه «غير مذكور في المصدر» (والمدد غير المذكورة اتركها ""). النصوص الطويلة لا تُنقل كاملة.
+- معلومات_الدرس: {"المادة","المستوى","الوحدة","الأسبوع","الحصة","اليوم","عنوان_الحصة","المدة_الإجمالية","بيانات_إضافية"}
+- هيكلة_الحصة: [{"المرحلة","المدة","الأنشطة_الفرعية":[{"النشاط","المدة"}]}] من شريحة الهيكلة حصرًا.
+- أهداف_الحصة: {"الصيغة_الافتتاحية":"على الأقل 80% من المتعلمين سيكونون قادرين على:","الأهداف":["…"]}
+- الوسائل_الديداكتيكية: {"الوسائل":[{"الوسيلة","الاستعمال"}]}
+- جذاذة_مفصلة: عنصر لكل مرحلة بترتيبها: [{"المرحلة","المدة","الأنشطة":[{"عنوان_النشاط","مجال_النشاط","المدة","سير_النشاط":[]}]}]. يبدأ نشاط جديد كلما تغيّرت التعليمة أو الدعامة. **سير_النشاط خطوتان كحد أقصى لكل نشاط**: لخّص المترابط منها في جملة موجزة (5 إلى 14 كلمة) تربطها «ثم» أو «،»، دون نقطة أو فاصلة منقوطة أو ترقيم، ولا تبدأ بـ«يطلب الأستاذ…». أضف مرحلة الاختتام إن وُجدت.
+- معلومات_إضافية: {"كلمات_بصرية":[],"استراتيجيات":[],"قواعد":[]} (حتى 8 عناصر لكل خانة، من المصدر فقط).
+  • كلمات_بصرية: الكلمات الشائعة القصيرة أو مفردات الحصة المطلوب التعرف عليها، كل كلمة عنصر مستقل.
+  • استراتيجيات: **الاستراتيجيات البيداغوجية الديداكتيكية** التي يعتمدها الأستاذ والمتعلمون في الحصة، **وليست مفردات ولا مصطلحات**. اصطدها من أنشطة الحصة وتعليماتها بحسب المادة:
+    – اللغة (عربية/فرنسية…): من أنشطة القراءة والفهم والاستماع والتحدث والكتابة وغيرها من المكونات، مثل «توقع مضمون النص من العنوان» و«العودة إلى النص للبحث عن الجواب» و«إعادة الحكي بالتناوب».
+    – الرياضيات: النمذجة، والممارسة الموجهة، والممارسة المستقلة، متى ظهرت في المراحل.
+    – النشاط العلمي: منهجية البحث والتقصي للوصول إلى النتائج والاستنتاجات (طرح المشكلة، الفرضيات، التجريب والملاحظة، الاستنتاج).
+    – مواد أخرى: ما يناسب طبيعتها مما يظهر فعلًا في الأنشطة.
+    كل عنصر عبارة موجزة (حتى 8 كلمات) تسمّي الاستراتيجية، ولا تخلطها بالمعجم.
+  • قواعد: القاعدة اللغوية أو الإملائية أو الصوتية أو الرياضية أو العلمية المستهدفة، في جملة موجزة.
+  وإن لم يرد شيء لخانة فاتركها مصفوفة فارغة.
+أخرج JSON فقط.`;
+
+const b64=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result.split(',')[1]);r.onerror=()=>no(r.error);r.readAsDataURL(f)});
+const LVL={p:['الابتدائي المغربي',"de l'école primaire marocaine"],c:['الإعدادي المغربي','du collège marocain'],h:['الثانوي التأهيلي المغربي','du lycée marocain']};
+const lvlFix=t=>{const l=$('lvl').value;if(l==='p')return t;return t.replace(LVL.p[0],LVL[l][0]).replace(LVL.p[1],LVL[l][1])};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function callG(k,m,fs){
+  const parts=[{text:lvlFix(LANG==='fr'?PROMPT_FR:PROMPT_AR)+($('note').value.trim()?(LANG==='fr'?"\nRemarques de l'utilisateur : ":'\nملاحظات المستخدم: ')+$('note').value.trim():'')}];
+  for(const f of fs){
+    if(/^text\/|json$/.test(f.type)||/\.(txt|md|json)$/i.test(f.name))parts.push({text:'--- '+f.name+' ---\n'+await f.text()});
+    else parts.push({inlineData:{mimeType:f.type||(/\.pdf$/i.test(f.name)?'application/pdf':'image/jpeg'),data:await b64(f)}});
+  }
+  const body=JSON.stringify({contents:[{role:'user',parts}],generationConfig:{temperature:.2,responseMimeType:'application/json'}});
+  let lastErr;
+  for(let a=0;a<3;a++){
+    try{
+      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':k},body});
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok){const e=new Error(j.error?.message||('HTTP '+r.status));e.retry=[429,500,502,503,504].includes(r.status);throw e}
+      const t=(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('');
+      if(!t){const e=new Error(tr('ردّ فارغ')+(j.promptFeedback?.blockReason?' ('+j.promptFeedback.blockReason+')':''));e.retry=!j.promptFeedback?.blockReason;throw e}
+      try{return canon(parse(t))}catch(pe){pe.retry=true;throw pe}
+    }catch(e){lastErr=e;if(!e.retry||a===2)break;st(tr('إعادة المحاولة تلقائيًا…'));await sleep(1500*(a+1))}
+  }
+  throw lastErr;
+}
+async function generate(){
+  const k=$('key').value.trim(),m=$('mdl').value,pasted=$('js').value.trim();
+  if(pasted){try{return render(canon(parseAny(pasted)))}catch(e){return st(tr('JSON غير صالح:')+' '+e.message,1)}}
+  if(!k)return st('أدخل مفتاح Gemini',1);if(!files.length&&!$('note').value.trim())return st('ارفع ملفًا واحدًا على الأقل',1);
+  if(files.reduce((a,f)=>a+f.size,0)>18e6)return st('حجم الملفات يتجاوز 18 م.ب (حد الإرسال المباشر)',1);
+  const sep=files.length>=2&&$('sep').checked;if(sep&&files.length>2)return st('اختر ملفين فقط، أو ألغِ خيار «خريطة مستقلة لكل ملف»',1);
+  if($('rem').checked)ls.set('gm_key',k);else ls.del('gm_key');ls.set('gm_model',m);
+  $('bGo').disabled=true;st(tr('جارٍ التحليل بـ')+' '+m+(sep?' '+tr('(ملفان بالتوازي)'):'')+' '+tr('… قد يستغرق دقيقة'));
+  try{
+    const res=await Promise.allSettled((sep?files.map(f=>[f]):[files]).map(j=>callG(k,m,j)));
+    const ok=res.filter(r=>r.status==='fulfilled').map(r=>r.value),bad=res.filter(r=>r.status==='rejected').map(r=>r.reason.message);
+    if(!ok.length)throw new Error(bad[0]);
+    render(ok);pushHist(ok);if(bad.length)$('tag').textContent+=' — '+tr('تعذّر تحليل ملف:')+' '+bad[0];
+  }catch(e){st(tr('تعذّر التوليد:')+' '+e.message,1)}finally{$('bGo').disabled=false}
+}
+function parse(t){t=t.trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();const a=t.indexOf('{'),b=t.lastIndexOf('}');return JSON.parse(t.slice(a,b+1))}
+function parseAny(t){t=t.trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();return t[0]==='['?JSON.parse(t):parse(t)}
+$('bGo').onclick=generate;
+
+function render(x){const A=(Array.isArray(x)?x:[x]).slice(0,2);DATA=A;A.forEach(norm);$('map').innerHTML=A.map(mapHtml).join('');
+  const demo=A[0]&&A[0].__demo;if(!demo)ls.set('gm_last',JSON.stringify(A));$('tag').textContent=tr(demo?'مثال توضيحي — اضغط «توليد خريطة» لتوليد خريطة حصتك':(A.length>1?'خريطتان في ورقة واحدة':'آخر خريطة مولَّدة (محفوظة في هذا المتصفح)'));
+  if($('dlg').open)$('dlg').close();st('');links();fit();
+}
+const TPLS=[['classic','classic','solid','كلاسيكي (الحالي)','Classique (actuel)'],['banner','grid2','num','أربع بطاقات مرقّمة','Cartes numérotées'],['branches','classic','pill','فروع أفقية','Branches horizontales'],['io','classic','plain','مدخلات ← مركز ← مخرجات','Entrées → centre → sorties'],['dashed','grid3','dashed','منقّط ومتقطع','Pointillé'],['wavy','grid3','wavy','الدماغ','Cerveau'],['bulb','grid3','sketch','فكرة (مصباح)','Idée (ampoule)'],['soft','grid3','soft','شبكة ناعمة','Grille douce'],['sticky','grid3','sticky','ملصقات ملوّنة','Étiquettes colorées'],['tree','tree','plain','شجرة هرمية','Arbre hiérarchique'],['project','grid2','tabs','خريطة مشروع (تبويبات)','Carte de projet (onglets)'],['concept','classic','concept','خريطة مفاهيم','Carte conceptuelle']].map(([id,lay,skin,ar,fr])=>({id,lay,skin,ar,fr}));
+let TPL=ls.get('gm_tpl')||'classic';const TP=()=>TPLS.find(t=>t.id===TPL)||TPLS[0];
+function thumb(t){const L=t.lay,c=t.skin==='dashed'?'#444':'#2a55a0',r=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="#fff" stroke="${c}" stroke-width="1.5"${t.skin==='dashed'?' stroke-dasharray="3 2"':''}/>`;let g='';
+  if(L==='classic')g=[0,1,2].map(i=>r(4,4+i*19,26,16)+r(60,4+i*19,26,16)).join('')+`<ellipse cx="45" cy="32" rx="12" ry="9" fill="${c}"/>`;
+  else if(L==='grid2')g=r(4,4,38,26)+r(48,4,38,26)+r(4,34,38,26)+r(48,34,38,26)+`<circle cx="45" cy="32" r="9" fill="#fff" stroke="${c}" stroke-width="2"/>`;
+  else if(L==='grid3')g=[0,1,2].map(i=>r(4+i*30,4,26,16)+r(4+i*30,44,26,16)).join('')+r(4,24,26,16)+r(60,24,26,16)+`<circle cx="45" cy="32" r="6" fill="${c}"/>`;
+  else g=r(26,3,38,12)+[0,1,2,3].map(i=>r(3+i*22,22,19,38)).join('');
+  return `<svg viewBox="0 0 90 64" width="90" height="64">${g}</svg>`}
+function showTpl(){$('tg').innerHTML=TPLS.map(t=>`<button type="button" class="tp${t.id===TPL?' on':''}" data-id="${t.id}">${thumb(t)}<span>${LANG==='fr'?t.fr:t.ar}</span></button>`).join('');$('dT').showModal()}
+$('bTpl').onclick=showTpl;
+$('tg').onclick=e=>{const b=e.target.closest('.tp');if(!b)return;TPL=b.dataset.id;ls.set('gm_tpl',TPL);$('dT').close();render(DATA)};
+const isO=x=>x&&typeof x==='object'&&!Array.isArray(x);
+function norm(d){d['جذاذة_مفصلة']=arr(d['جذاذة_مفصلة']).filter(isO).map(s=>{s['الأنشطة']=arr(s['الأنشطة']).filter(isO).map(a=>{a['سير_النشاط']=arr(a['سير_النشاط']).map(tx);return a});return s});
+  ['معلومات_الدرس','أهداف_الحصة','الوسائل_الديداكتيكية'].forEach(k=>{if(!isO(d[k]))d[k]={}});d['أهداف_الحصة']['الأهداف']=arr(d['أهداف_الحصة']['الأهداف']);d['الوسائل_الديداكتيكية']['الوسائل']=arr(d['الوسائل_الديداكتيكية']['الوسائل']);return d}
+const getp=(o,p)=>p.split('.').reduce((a,k)=>a==null?a:a[k],o);
+function setp(o,p,v){const ks=p.split('.');let c=o;ks.forEach((k,i)=>{if(i===ks.length-1)c[k]=v;else{if(c[k]==null||typeof c[k]!=='object')c[k]=/^\d+$/.test(ks[i+1])?[]:{};c=c[k]}})}
+const mapIdx=el=>[...document.querySelectorAll('.mp')].indexOf(el.closest('.mp'));
+const saveAll=()=>{if(DATA[0]&&!DATA[0].__demo)ls.set('gm_last',JSON.stringify(DATA))};
+function mapHtml(d){
+  const I=d['معلومات_الدرس'],G=d['أهداف_الحصة'],M=d['الوسائل_الديداكتيكية'],L=d['معلومات_إضافية']||d['معجم_الحصة']||{},S=d['جذاذة_مفصلة'],B=d.__lbl||{};
+  const lb=(id,def)=>`<span contenteditable data-l="${id}">${esc(B[id]??def)}</span>`;
+  const ed=(p,v,ph)=>`<span contenteditable data-p="${p}" data-ph="${tr(ph||'')}">${esc(v)}</span>`;
+  const li=(p,v,ph)=>`<li contenteditable data-p="${p}" data-li="1" data-ph="${tr(ph)}">${esc(v)}</li>`;
+  const title=tx(I['عنوان_الحصة']);
+  const IK=[['المادة','المادة','#2f6fd0'],['المستوى','المستوى','#2e9a5b'],['الوحدة','الوحدة','#e08a1e'],['الأسبوع','الأسبوع','#7b3fb0'],['الحصة','الحصة','#d6336c'],['المدة','المدة_الإجمالية','#12877f']];
+  const meta=IK.map(([l,k,c])=>`<div class="ic" style="--k:${c}"><small>${lb('i_'+l,tr(l))}</small><span contenteditable data-p="معلومات_الدرس.${k}" data-ph="—">${esc(tx(I[k])||(k==='المدة_الإجمالية'?tx(I['المدة']):''))}</span></div>`).join('');
+  const card=(s,i,x)=>{const c=COL[i%COL.length],P=`جذاذة_مفصلة.${i}`;return `<div class="card" style="--c:${c};${x||''}"><div class="h"><span class="n">${i+1}</span>${ed(P+'.المرحلة',tx(s['المرحلة']),'اسم المرحلة')}<span class="d">${ed(P+'.المدة',tx(s['المدة']),'مدة')}</span><button class="ctl x" data-act="delStage" data-i="${i}" title="${tr('حذف المرحلة')}">✕</button></div><div class="b">${arr(s['الأنشطة']).map((a,j)=>`<div class="a"><button class="ctl x" data-act="delAct" data-i="${i}" data-j="${j}" title="${tr('حذف النشاط')}">✕</button><b>${ed(`${P}.الأنشطة.${j}.عنوان_النشاط`,tx(a['عنوان_النشاط']),'عنوان النشاط')}</b><ul>${arr(a['سير_النشاط']).map((x,k)=>li(`${P}.الأنشطة.${j}.سير_النشاط.${k}`,x,'خطوة')).join('')}</ul><button class="ctl add sm" data-act="addStep" data-i="${i}" data-j="${j}">${tr('＋ خطوة')}</button></div>`).join('')}<button class="ctl add" data-act="addAct" data-i="${i}">${tr('＋ نشاط')}</button></div></div>`};
+  const isCl=s=>/اختتام|ختام|خاتمة|clôture|cloture|conclusion/i.test(tx(s['المرحلة'])),ci=S.length>1?S.map(isCl).lastIndexOf(true):-1,main=S.map((s,i)=>i).filter(i=>i!==ci),h=Math.ceil(main.length/2),R=main.slice(0,h).map(i=>card(S[i],i)).join(''),Lc=main.slice(h).map(i=>card(S[i],i)).join(''),CL=ci>=0?`<div class="cl">${card(S[ci],ci)}</div>`:'';
+  const goals=arr(G['الأهداف']),means=arr(M['الوسائل']);
+  const lex=[['كلمات بصرية','كلمات_بصرية'],['استراتيجيات','استراتيجيات'],['قواعد','قواعد']];
+  const T=TP(),lay=T.lay,sk=T.skin,HEAD=`<div class="ttl">${lb('ttl',tr('خطاطة ذهنية —'))} ${ed('معلومات_الدرس.عنوان_الحصة',title,'عنوان الحصة')}</div><div class="info">${meta}</div>`,OV=`<div class="oval"><b>${ed('معلومات_الدرس.عنوان_الحصة',title,'عنوان الحصة')}</b><small>${ed('معلومات_الدرس.المادة',tx(I['المادة']),'المادة')} · ${ed('معلومات_الدرس.المستوى',tx(I['المستوى']),'المستوى')}</small></div>`,BX=`<div class="box${goals.length?'':' emp'}"><h3>${lb('goalT',tr('عند نهاية الحصة'))}</h3><p>${ed('أهداف_الحصة.الصيغة_الافتتاحية',tx(G['الصيغة_الافتتاحية']),'الصيغة الافتتاحية')}</p><ul>${goals.map((g,k)=>li(`أهداف_الحصة.الأهداف.${k}`,tx(g),'هدف')).join('')}</ul><button class="ctl add sm" data-act="addGoal">${tr('＋ هدف')}</button></div>
+   <div class="box${means.length?'':' emp'}"><h3>${lb('meanT',tr('الوسائل'))}</h3><ul>${means.map((g,k)=>li(`الوسائل_الديداكتيكية.الوسائل.${k}`,tx(g),'وسيلة')).join('')}</ul><button class="ctl add sm" data-act="addMean">${tr('＋ وسيلة')}</button></div>
+   <div class="box lx"><h3>${lb('lxT',tr('معلومات إضافية'))}</h3>${lex.map(([n,k])=>`<p><b>${lb('lx_'+k,tr(n))}:</b> <span contenteditable data-p="معلومات_إضافية.${k}" data-arr="1" data-ph="${tr('اكتب هنا…')}">${arr(L[k]).map(x=>esc(tx(x))).join(' • ')}</span></p>`).join('')}</div>`;
+  const SEQ={1:'T',2:'TL TR',3:'TL TR B',4:'TL TR BL BR',5:'TL T TR BL BR',6:'TL T TR BL B BR',7:'TL T TR L R BL BR',8:'TL T TR L R BL B BR'},CELL={TL:[1,1],T:[1,2],TR:[1,3],L:[2,1],R:[2,3],BL:[3,1],B:[3,2],BR:[3,3]};
+  const eff=(lay==='grid3'&&main.length<=4)?'grid2 x3':lay;
+  const cellOf=i=>{const n=main.length;if(n>8&&i>=8){const j=i-8;return `grid-row:${4+Math.floor(j/3)};grid-column:${j%3+1}`}const c=CELL[SEQ[Math.min(n,8)||1].split(' ')[i]];return `grid-row:${c[0]};grid-column:${c[1]}`};
+  let body;
+  if(lay==='classic')body=`<div class="col">${R}</div><div class="cen">${OV}</div><div class="col">${Lc}</div>${CL}`;
+  else{const all=main.map((si,i)=>card(S[si],si,eff==='grid3'?cellOf(i):/grid2/.test(eff)?`grid-column:${i%2?3:1};grid-row:${Math.floor(i/2)+1}`:'')).join('');
+    const cell2=i=>`grid-column:${i%2?3:1};grid-row:${Math.floor(i/2)+1}`;
+    body=lay==='tree'?`<div class="top">${OV}</div><div class="stg tree" style="--n:${Math.min(main.length||1,4)}">${all}</div>`:`<div class="stg ${eff}" style="--rows:${Math.max(1,Math.ceil(main.length/2))}">${all}${OV}</div>`}
+  body+=lay==='classic'?'':CL;
+  return `<div class="mp lay-${lay} sk-${sk}">${HEAD}<div class="bx">${BX}</div>${body}<div class="ft ctl"><button class="add" data-act="addStage">${tr('＋ مرحلة')}</button></div><svg class="lk"></svg></div>`;
+}
+
+function links(){
+  document.querySelectorAll('.mp').forEach(m=>{const ov=m.querySelector('.oval'),svg=m.querySelector('svg.lk');if(!ov)return;
+    svg.setAttribute('viewBox',`0 0 ${m.offsetWidth} ${m.offsetHeight}`);if(m.classList.contains('lay-grid2')){svg.innerHTML='';return}
+    const pos=e=>{let o=e,x=0,y=0;while(o&&o!==m){x+=o.offsetLeft;y+=o.offsetTop;o=o.offsetParent}return [x,y]},
+    sk=(m.className.match(/sk-(\w+)/)||[])[1],cl=m.classList.contains('lay-classic'),LS={dashed:['#444','7 6'],wavy:['#555',''],sketch:['#111',''],soft:['#222',''],plain:['#111',''],concept:['#111',''],sticky:['#333',''],tabs:['#555','']},st=LS[sk],
+    [ox,oy]=pos(ov),cx=ox+ov.offsetWidth/2,cy=oy+ov.offsetHeight/2,rx=ov.offsetWidth/2,ry=ov.offsetHeight/2;
+    let p=st?'<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="'+st[0]+'"/></marker></defs>':'';
+    m.querySelectorAll('.card').forEach(c=>{const [x,y]=pos(c),w=c.offsetWidth,h=c.offsetHeight,side=cl&&!c.parentElement.classList.contains('cl');let ex,ey;
+      if(side){ex=x+w/2>cx?x:x+w;ey=y+Math.min(h/2,28)}else{ex=Math.min(Math.max(cx,x),x+w);ey=Math.min(Math.max(cy,y),y+h)}
+      const th=Math.atan2((ey-cy)/ry,(ex-cx)/rx),sx=cx+rx*Math.cos(th),sy=cy+ry*Math.sin(th),vert=!side&&Math.abs(ey-sy)>Math.abs(ex-sx),c1=vert?[sx,(sy+ey)/2]:[(sx+ex)/2,sy],c2=vert?[ex,(sy+ey)/2]:[(sx+ex)/2,ey];
+      p+=`<path d="M${sx} ${sy} C${c1[0]} ${c1[1]} ${c2[0]} ${c2[1]} ${ex} ${ey}" fill="none" stroke="${st?st[0]:getComputedStyle(c).getPropertyValue('--c')}" stroke-width="${st?3:5}" stroke-linecap="round"${st&&st[1]?` stroke-dasharray="${st[1]}"`:''}${st?' marker-end="url(#ah)"':''}/>`});
+    svg.innerHTML=p})
+}
+function fit(){const z=$('zoomer'),w=$('zw'),sw=$('stage').clientWidth-24,k=Math.min(1,sw/1080);z.style.transform=k<1?`scale(${k})`:'none';w.style.width=1080*k+'px';w.style.height=$('map').offsetHeight*k+'px'}
+addEventListener('resize',fit);
+$('map').addEventListener('input',e=>{const t=e.target,mp=t.closest&&t.closest('.mp');if(!mp)return;const d=DATA[mapIdx(t)];if(!d)return;
+  if(t.dataset.p){const v=t.dataset.arr?t.textContent.split(/[•\n]/).map(x=>x.trim()).filter(Boolean):t.textContent.trim();setp(d,t.dataset.p,v);
+    if(!t.dataset.arr)mp.querySelectorAll('[data-p="'+t.dataset.p+'"]').forEach(o=>{if(o!==t)o.textContent=t.textContent})}
+  else if(t.dataset.l){(d.__lbl=d.__lbl||{})[t.dataset.l]=t.textContent.trim()}
+  saveAll();links()});
+$('map').addEventListener('focusout',e=>{const t=e.target;if(!t.dataset||!t.dataset.li||t.textContent.trim())return;const d=DATA[mapIdx(t)],p=t.dataset.p.split('.'),k=+p.pop(),a=getp(d,p.join('.'));if(Array.isArray(a)){a.splice(k,1);saveAll();render(DATA)}});
+$('map').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-act]');if(!b)return;const d=DATA[mapIdx(b)],i=+b.dataset.i,j=+b.dataset.j,S=d['جذاذة_مفصلة'];
+  const act={addStage:()=>S.push({'المرحلة':tr('مرحلة جديدة'),'المدة':'','الأنشطة':[{'عنوان_النشاط':tr('نشاط جديد'),'سير_النشاط':[tr('خطوة جديدة')]}]}),
+   delStage:()=>confirm(tr('حذف هذه المرحلة؟'))&&S.splice(i,1),
+   addAct:()=>S[i]['الأنشطة'].push({'عنوان_النشاط':tr('نشاط جديد'),'سير_النشاط':[tr('خطوة جديدة')]}),
+   delAct:()=>confirm(tr('حذف هذا النشاط؟'))&&S[i]['الأنشطة'].splice(j,1),
+   addStep:()=>S[i]['الأنشطة'][j]['سير_النشاط'].push(tr('خطوة جديدة')),
+   addGoal:()=>d['أهداف_الحصة']['الأهداف'].push(tr('هدف جديد')),
+   addMean:()=>d['الوسائل_الديداكتيكية']['الوسائل'].push(tr('وسيلة جديدة'))}[b.dataset.act];
+  if(act&&act()!==false){saveAll();render(DATA)}});
+function setLx(off){document.body.classList.toggle('nolx',off);$('bLx').classList.toggle('off',off);$('bLx').lastChild.textContent=tr(off?'إظهار المعلومات الإضافية':'إخفاء المعلومات الإضافية');ls.set('gm_nolx',off?'1':'');links();fit()}
+$('bLx').onclick=()=>setLx(!document.body.classList.contains('nolx'));
+function structOf(d){let H=arr(d['هيكلة_الحصة']).map(h=>({n:tx(h['المرحلة']),d:tx(h['المدة']),a:arr(h['الأنشطة_الفرعية']).map(x=>tx(x['النشاط'])+(tx(x['المدة'])?' ('+tx(x['المدة'])+')':''))})).filter(h=>h.n);
+  if(!H.length)H=arr(d['جذاذة_مفصلة']).map(h=>({n:tx(h['المرحلة']),d:tx(h['المدة']),a:arr(h['الأنشطة']).map(x=>tx(x['عنوان_النشاط'])).filter(Boolean)})).filter(h=>h.n);return H}
+$('bStr').onclick=()=>{$('dSp').textContent=tr(DATA.length>1?'هيكلة الحصتين':'مراحل الحصة ومددها');
+  $('dSb').innerHTML=DATA.map(d=>{const H=structOf(d),mn=H.map(h=>parseInt((h.d.match(/\d+/)||[0])[0])||0),tot=mn.reduce((a,b)=>a+b,0),ti=tx((d['معلومات_الدرس']||{})['عنوان_الحصة'])||tr('الحصة');
+    return `<div class="sl"><h3>${esc(ti)}${tot?` <small style="color:#6b7690">· ${tot} ${tr('د')}</small>`:''}</h3>`+(H.length?`<div class="tb">${H.map((h,i)=>`<span style="--c:${COL[i%COL.length]};flex:${mn[i]||1}" title="${esc(h.n)}">${esc(mn[i]?mn[i]+tr('د'):'')}</span>`).join('')}</div>`+H.map((h,i)=>`<div class="st" style="--c:${COL[i%COL.length]}"><span class="n">${i+1}</span><div><b>${esc(h.n)}</b>${h.a.length?`<ul>${h.a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}</div>${h.d?`<span class="d">${esc(h.d)}</span>`:''}</div>`).join(''):'<p style="color:#6b7690">'+tr('لا توجد هيكلة في هذه الحصة.')+'</p>')+'</div>'}).join('');
+  $('dS').showModal()};
+$('bPrint').onclick=()=>$('dP').showModal();
+const INK={g:'.mp{filter:grayscale(1)}',b:'.mp{filter:grayscale(1)}.card{--c:#000!important}.card .h{background:#fff!important;color:#000!important;border-bottom:2px solid #000}.card .h .n{background:#000!important;color:#fff!important}.card .h .d{background:#eee!important;color:#000!important}.card .h .x{display:none}.ttl{background:#fff!important;color:#000!important;border:2px solid #000}.oval{background:#fff!important;color:#000!important;border-color:#000!important}.ic{--k:#000!important;box-shadow:none!important}.box{background:#fff!important;border-color:#000!important}.box h3,.lx b{color:#000!important}.box li:before{background:#000!important}.mp{box-shadow:none!important}svg.lk path{stroke:#000!important}'};
+const ZM=k=>(window.CSS&&CSS.supports&&CSS.supports('zoom','1'))?`zoom:${k};`:`transform:scale(${k});transform-origin:top center;`;
+function doPrint(o){const pm=$('pm').value;ls.set('gm_pm',pm);$('dP').close();document.body.classList.add('cap');links();const m=$('map'),mps=[...document.querySelectorAll('.mp')],side=o==='l'&&mps.length>1,
+  mw=side?mps.length*1080+(mps.length-1)*20:m.offsetWidth,mh=side?Math.max(...mps.map(x=>x.offsetHeight)):m.offsetHeight,u=3.7795,pw=(o==='p'?198:285)*u,ph=(o==='p'?285:198)*u,k=Math.min(pw/mw,ph/mh)*.95;
+  let t=$('ps');if(!t){t=document.createElement('style');t.id='ps';document.head.appendChild(t)}
+  t.textContent=`@page{size:A4 ${o==='p'?'portrait':'landscape'};margin:6mm}@media print{#zw{width:auto!important;height:auto!important;margin:0!important}#zoomer{position:static!important;transform:none!important;width:auto!important}#map{${ZM(k)}margin:0 auto;break-inside:avoid;page-break-inside:avoid;${side?'flex-direction:row!important;width:auto!important;align-items:flex-start;':''}}${side?'.mp{width:1080px;flex:none}':''}${INK[pm]||''}}`;
+  setTimeout(()=>print(),80)}
+{const v=ls.get('gm_pm');if(v)$('pm').value=v}
+addEventListener('afterprint',()=>{const t=$('ps');if(t)t.textContent='';document.body.classList.remove('cap');links();fit()});
+$('bJson').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(outLang(DATA.length===1?DATA[0]:DATA),(k,v)=>k.startsWith('__')?undefined:v,2)],{type:'application/json'}));a.download='khartat_hissa.json';a.click()};
+const DEMO={__demo:1,"معلومات_الدرس":{"المادة":"اللغة العربية","المستوى":"المستوى 1 و2","الوحدة":"الوحدة 1","الأسبوع":"الأسبوع 1","الحصة":"الحصة 4","المدة_الإجمالية":"140 د","عنوان_الحصة":"أول يوم في المدرسة"},
+"أهداف_الحصة":{"الصيغة_الافتتاحية":"على الأقل 80% من المتعلمين سيكونون قادرين على:","الأهداف":["سرد مقاطع من الحكاية وتعرف أساليب التحية","تعرف الصوت [د] وتمييزه ونطقه ورسمه","قراءة فقرة بطلاقة في حدود 30 كلمة"]},
+"الوسائل_الديداكتيكية":{"الوسائل":[{"الوسيلة":"المسلاط","الاستعمال":"عرض النص"},{"الوسيلة":"كراسة المتعلم","الاستعمال":"التمارين"}]},
+"معجم_الحصة":{"كلمات_بصرية":["أنا","اسمي","مجد"],"استراتيجيات":["توقع مضمون النص من العنوان"],"قواعد":["تنوين الفتح يُنطق آن"]},
+"جذاذة_مفصلة":[{"المرحلة":"أنشطة اعتيادية","المدة":"10 د","الأنشطة":[{"عنوان_النشاط":"كلمات بصرية","سير_النشاط":["قراءة الكلمات على اللوحة","قراءة جماعية ثم فردية"]},{"عنوان_النشاط":"إملاء اعتيادي","سير_النشاط":["إملاء اسمين جديدين على الألواح"]}]},
+{"المرحلة":"استماع وتحدث","المدة":"30 د","الأنشطة":[{"عنوان_النشاط":"حكاية «أول يوم في المدرسة»","سير_النشاط":["سرد مقاطع الحكاية بالتعبير الجسدي","إعادة الحكي جماعيًا ثم فرديًا"]},{"عنوان_النشاط":"الوضعية التواصلية","سير_النشاط":["التحية وتقديم النفس في ثنائيات"]}]},
+{"المرحلة":"قراءة م1: الدال مع التنوين","المدة":"40 د","الأنشطة":[{"عنوان_النشاط":"تعرف الصوت [د]","سير_النشاط":["تمييز الصوت ونطقه ثم ربطه بالرسم الخطي"]},{"عنوان_النشاط":"قراءة","سير_النشاط":["قراءة مقاطع الدال مع التنوين"]}]},
+{"المرحلة":"قراءة م2: تنمية الطلاقة","المدة":"40 د","الأنشطة":[{"عنوان_النشاط":"استرجاع","سير_النشاط":["عنوان النص وعمّ يتحدث"]},{"عنوان_النشاط":"قراءة متتابعة","سير_النشاط":["قراءة مقاطع النص متتابعة ثم أسئلة الفهم"]}]},
+{"المرحلة":"اختتام الحصة","المدة":"آخر الحصة","الأنشطة":[{"عنوان_النشاط":"ماذا تعلمنا اليوم؟","سير_النشاط":["إعادة سرد مقطع النهاية وقراءة الدال"]}]}]};
+{let last=null;try{last=JSON.parse(ls.get('gm_last'))}catch(_){}DATA=last?(Array.isArray(last)?last:[last]):[LANG==='fr'?DEMO_FR:DEMO];if(ls.get('gm_nolx'))document.body.classList.add('nolx');applyLang();if(ls.get('gm_nolx'))setLx(true)}
+$('bForget').onclick=()=>{ls.del('gm_key');$('key').value='';$('rem').checked=false;st('تم نسيان المفتاح')};
+$('bCopy').onclick=async()=>{const t=JSON.stringify(outLang(DATA.length===1?DATA[0]:DATA),(k,v)=>k.startsWith('__')?undefined:v,2);
+  try{await navigator.clipboard.writeText(t)}catch(_){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove()}
+  const b=$('bCopy'),o=b.textContent;b.textContent=tr('✔ تم النسخ');setTimeout(()=>b.textContent=o,1500)};
+let dip=null;const stand=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e});addEventListener('appinstalled',()=>{$('bInst').hidden=true});
+if(stand)$('bInst').hidden=true;
+const info=(t,h)=>{$('dIt').textContent=tr(t);$('dIb').innerHTML=tr(h);$('dI').showModal()};
+$('bInst').onclick=async()=>{
+  if(dip){dip.prompt();await dip.userChoice;dip=null;return}
+  const ua=navigator.userAgent,ios=/iPhone|iPad|iPod/.test(ua);
+  if(location.protocol==='file:')return info('التثبيت يحتاج رابطًا https','المتصفحات لا تثبّت التطبيقات من ملف محلي. ارفع ملفات التطبيق (index.html وmanifest.webmanifest وsw.js والأيقونتين) إلى أي استضافة ثابتة مجانية مثل Netlify Drop أو GitHub Pages أو Cloudflare Pages، ثم افتح الرابط واضغط «تثبيت التطبيق» من الهاتف أو الحاسوب.');
+  if(ios)return info('التثبيت على آيفون / آيباد','في Safari: اضغط زر <b>المشاركة</b> ⬆ ثم <b>إضافة إلى الشاشة الرئيسية</b>.');
+  info('التثبيت من قائمة المتصفح','<b>أندرويد (Chrome):</b> القائمة ⋮ ثم «تثبيت التطبيق».<br><b>ويندوز (Chrome / Edge):</b> أيقونة التثبيت في شريط العنوان، أو القائمة ← «تثبيت».<br>إن لم يظهر الخيار فتأكد أنك تفتح الرابط عبر https.')};
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))fetch('sw.js',{method:'HEAD'}).then(r=>{if(r.ok)navigator.serviceWorker.register('sw.js')}).catch(()=>{});
+$('bPng').onclick=async()=>{
+  try{if(!window.html2canvas)await new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s.onload=ok;s.onerror=()=>no(new Error(tr('تعذّر تحميل مكتبة التصدير (تحقق من الاتصال)')));document.head.appendChild(s)});
+    document.body.classList.add('cap');links();const z=$('zoomer'),t=z.style.transform;z.style.transform='none';await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const c=await html2canvas($('map'),{scale:2,backgroundColor:'#fff'});z.style.transform=t;document.body.classList.remove('cap');links();
+    const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='khartat_hissa.png';a.click()}catch(e){document.body.classList.remove('cap');links();alert(e.message)}};
+
+/* ===== manifest + icons injected (no external files needed) ===== */
+(function(){try{
+  const mk=n=>{const c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d');x.fillStyle='#14264a';x.fillRect(0,0,n,n);x.font=(n*.57)+'px serif';x.textAlign='center';x.textBaseline='middle';x.fillText('🧠',n/2,n*.54);return c.toDataURL('image/png')};
+  const i192=mk(192),i512=mk(512),h=document.head;
+  [['icon',i192],['apple-touch-icon',i192]].forEach(([r,u])=>{const l=document.createElement('link');l.rel=r;l.href=u;h.appendChild(l)});
+  if(/^https?:$/.test(location.protocol)){
+    const base=location.href.split('#')[0].split('?')[0],mf={name:'مولّد الخرائط الذهنية للحصة',short_name:'خرائط الحصة',start_url:base,scope:base.replace(/[^/]*$/,''),display:'standalone',background_color:'#e9edf5',theme_color:'#14264a',lang:'ar',dir:'rtl',icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any'}]};
+    const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/manifest+json'}));h.appendChild(l)}
+}catch(_){}})();
+
+/* ===== history of generated maps ===== */
+const HK='gm_hist';
+const getHist=()=>{try{return JSON.parse(ls.get(HK))||[]}catch(_){return[]}};
+function pushHist(A){try{const clean=JSON.parse(JSON.stringify(A));const t=A.map(d=>tx((d['معلومات_الدرس']||{})['عنوان_الحصة'])).filter(Boolean).join(' + ')||'—';
+  const H=getHist();H.unshift({ts:Date.now(),t,data:clean});ls.set(HK,JSON.stringify(H.slice(0,10)))}catch(_){}}
+function showHist(){const H=getHist();
+  $('hb').innerHTML=H.length?H.map((h,i)=>`<div class="sl" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><div style="min-width:0"><b>${esc(h.t)}</b><br><small style="color:#6b7690">${new Date(h.ts).toLocaleString(LANG==='fr'?'fr-FR':'ar-MA')}</small></div><div class="row w" style="flex:none"><button type="button" data-h="open" data-i="${i}">${tr('فتح')}</button><button type="button" class="x" data-h="del" data-i="${i}" title="${tr('حذف')}" style="width:28px;height:28px">✕</button></div></div>`).join(''):`<p style="color:#6b7690">${tr('لا يوجد سجل بعد')}</p>`;
+  $('dH').showModal()}
+$('bHist').onclick=showHist;
+$('hb').onclick=e=>{const b=e.target.closest('[data-h]');if(!b)return;const H=getHist(),i=+b.dataset.i;
+  if(b.dataset.h==='open'&&H[i]){$('dH').close();render(H[i].data)}
+  else if(b.dataset.h==='del'){H.splice(i,1);ls.set(HK,JSON.stringify(H));showHist()}};
+$('hClr').onclick=()=>{if(confirm(tr('مسح كل السجل؟'))){ls.del(HK);showHist()}};
+
+/* ===== direct PDF export ===== */
+const loadJs=(src,ok)=>ok()?Promise.resolve():new Promise((res,no)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>no(new Error(tr('تعذّر تحميل مكتبة التصدير (تحقق من الاتصال)')));document.head.appendChild(s)});
+$('bPdf').onclick=async()=>{const b=$('bPdf'),old=b.innerHTML;
+  try{b.disabled=true;st('جارٍ إنشاء PDF…');
+    await loadJs('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',()=>window.html2canvas);
+    await loadJs('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',()=>window.jspdf);
+    document.body.classList.add('cap');links();const z=$('zoomer'),t=z.style.transform;z.style.transform='none';
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    const c=await html2canvas($('map'),{scale:2,backgroundColor:'#fff'});z.style.transform=t;document.body.classList.remove('cap');links();
+    const land=c.width>c.height*1.15,pdf=new jspdf.jsPDF({orientation:land?'l':'p',unit:'mm',format:'a4'}),pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight(),
+      k=Math.min((pw-10)/c.width,(ph-10)/c.height),w=c.width*k,h=c.height*k;
+    pdf.addImage(c.toDataURL('image/jpeg',.92),'JPEG',(pw-w)/2,(ph-h)/2,w,h);pdf.save('khartat_hissa.pdf');st('')}
+  catch(e){document.body.classList.remove('cap');links();st(e.message,1);alert(e.message)}
+  finally{b.disabled=false;b.innerHTML=old}};
+</script>
+</body>
+</html>
