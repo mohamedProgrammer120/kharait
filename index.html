@@ -290,7 +290,7 @@ async function generate(){
   if(pasted){try{return render(canon(parseAny(pasted)))}catch(e){return st(tr('JSON غير صالح:')+' '+e.message,1)}}
   if(files.length&&files.every(f=>/\.json$/i.test(f.name))){try{const out=[];for(const f of files)out.push(...[].concat(canon(parseAny(await f.text()))));if(!out.every(o=>o&&o['معلومات_الدرس']))throw new Error('معلومات_الدرس');files=[];showF();return render(out.slice(0,2))}catch(e){return st(tr('ملف JSON غير صالح:')+' '+e.message,1)}}
 if(!files.length&&!$('note').value.trim())return st('ارفع ملفًا واحدًا على الأقل',1);
-  if(files.filter(f=>!/\.(pptx|docx)$/i.test(f.name)).reduce((a,f)=>a+f.size,0)>3e6)return st('حجم الملفات يتجاوز 18 م.ب (حد الإرسال المباشر)',1);
+  if(files.filter(f=>!/\.(pptx|docx)$/i.test(f.name)).reduce((a,f)=>a+f.size,0)>3e6)return st('حجم الملفات يتجاوز 3 م.ب (حد الإرسال الآمن)',1);
   const sep=files.length>=2&&$('sep').checked;if(sep&&files.length>2)return st('اختر ملفين فقط، أو ألغِ خيار «خريطة مستقلة لكل ملف»',1);
   ls.set('gm_model',m);
   $('bGo').disabled=true;st(tr('جارٍ التحليل بـ')+' '+m+(sep?' '+tr('(ملفان بالتوازي)'):'')+' '+tr('… قد يستغرق دقيقة'));
