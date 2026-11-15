@@ -1,50 +1,70 @@
 # Kharait — Générateur de cartes mentales de séance
 
-Application web HTML/CSS/JavaScript bilingue (arabe/français) : analyse des documents de séance, création de cartes mentales modifiables, impression et export PNG/PDF.
+Application web HTML/CSS/JavaScript bilingue (arabe/français) : analyse des documents de séance, création de cartes mentales modifiables, impression et export PNG/PDF. Authentification Supabase et BYOK (Bring Your Own Key).
 
-## 1. Déployer sur Vercel et sécuriser Gemini
-
-1. Importer le dépôt GitHub dans Vercel.
-2. Déployer la branche `feature/secure-backend-supabase` pour tester les modifications.
-3. Dans **Vercel → Project → Settings → Environment Variables**, ajouter `GEMINI_API_KEY` avec la clé créée dans Google AI Studio.
-4. Activer Production et Preview, enregistrer, puis redéployer.
-5. Tester une génération avec un petit document.
-
-La clé Gemini est utilisée uniquement par `api/generate.js`. Ne jamais la mettre dans le HTML, dans GitHub, ni dans une variable `NEXT_PUBLIC_*`.
-
-La fonction vérifie le modèle, le contenu envoyé, la taille de requête, utilise une URL Google fixe, applique un délai d'attente et une limite basique de 8 requêtes/minute par IP et instance. Cette limite mémoire est best-effort : pour une application publique, remplace-la par un compteur partagé Upstash Redis ou équivalent. La taille totale des fichiers envoyés est limitée à 3 Mo pour rester dans les limites des fonctions Vercel.
-
-## 2. Activer les comptes et la synchronisation multi-appareils
+## 1. Configuration Supabase
 
 1. Créer un projet Supabase.
-2. Dans **SQL Editor**, exécuter tout le contenu de `supabase/schema.sql`.
-3. Dans **Authentication → Providers**, activer Email.
-4. Dans **Project Settings → API**, copier l'URL du projet et la clé **anon/public**.
-5. Ouvrir `supabase-config.js` dans GitHub et remplacer les deux valeurs d'exemple :
-   - `url` : URL du projet Supabase.
-   - `anonKey` : clé publique anon.
-6. Dans **Authentication → URL Configuration**, ajouter le domaine Vercel dans les URL autorisées. Si la confirmation par e-mail est activée, configurer aussi le lien de redirection.
-7. Redéployer le site.
+2. Exécuter `supabase/schema.sql` dans SQL Editor.
+3. Activer Email dans Authentication → Providers.
+4. Renseigner l'URL et la clé Publishable du projet dans `supabase-config.js`.
+5. Dans Vercel, ajouter `SUPABASE_URL` et `SUPABASE_PUBLISHABLE_KEY` (la clé Publishable est prévue pour être exposée au navigateur ; jamais la clé Secret/service_role).
+6. Ajouter le domaine Vercel aux URL autorisées dans Supabase Auth.
 
-À l'ouverture du site, l'écran de connexion bloque l'accès tant qu'aucune session Supabase valide n'existe. Crée ton compte, confirme l'e-mail si demandé, puis connecte-toi. La connexion est requise aussi côté API Gemini ; masquer simplement l'écran ne suffit pas. Une fois connecté, ouvrir **Compte / Synchronisation** puis cliquer sur **Enregistrer la carte actuelle**. Les cartes enregistrées apparaîtront dans la liste et pourront être ouvertes depuis un autre appareil après connexion.
+L'écran de connexion est obligatoire. L'API serveur vérifie le jeton Supabase avant chaque génération IA.
 
-**Sécurité :** le fichier de configuration ne contient que la clé publique anon. Ne jamais utiliser la clé `service_role` dans le navigateur. Les politiques Row Level Security de `supabase/schema.sql` garantissent que chaque utilisateur ne voit et ne modifie que ses propres cartes.
+## 2. BYOK : chaque utilisateur utilise son propre fournisseur IA
 
-## 3. Fichiers importants
+Kharait ne nécessite plus de clé Gemini commune ni de clé IA appartenant au propriétaire du site. Chaque utilisateur ouvre **Générer une carte**, choisit son fournisseur, puis :
+- colle sa propre clé API ; ou
+- utilise **Connecter OpenRouter (OAuth)** pour autoriser son compte OpenRouter via PKCE.
 
-- `index.html` : interface, éditeur, authentification et synchronisation Supabase.
-- `api/generate.js` : proxy serveur Gemini.
-- `supabase/schema.sql` : table, index, trigger et politiques RLS.
-- `supabase-config.js` : URL Supabase et clé publique anon (à configurer).
-- `.env.example` : variable secrète Gemini à ajouter dans Vercel.
+Fournisseurs proposés :
+- Google Gemini
+- Groq
+- OpenRouter
+- OpenAI
+- Anthropic Claude
+
+Les clés sont conservées uniquement dans la mémoire de la page active. Elles ne sont ni écrites dans localStorage/sessionStorage, ni envoyées à Supabase, ni enregistrées dans les cartes. Elles sont transmises en HTTPS dans un en-tête dédié au proxy Vercel, utilisées pour l'appel au fournisseur, puis abandonnées. Fermer ou recharger l'onglet efface la clé de la mémoire ; l'utilisateur doit la ressaisir ou reconnecter OpenRouter.
+
+**OAuth :** OpenRouter prend en charge la connexion OAuth PKCE sans demander le mot de passe OpenRouter à Kharait. Les autres fournisseurs sont proposés par clé API personnelle ; ils n'ont pas de flux OAuth générique intégré dans cette version.
+
+**Fichiers :** Gemini et Anthropic acceptent les documents PDF transmis ici. Pour OpenAI, Groq et OpenRouter, l'API commune transmet texte et images ; les PDF directs ne sont pas pris en charge par cette route et l'interface renverra un message explicatif. Les modèles vision dépendent du fournisseur et du modèle choisis.
+
+Chaque fournisseur facture directement son propre utilisateur selon son compte, son quota et ses conditions. Un abonnement ChatGPT Plus, par exemple, ne donne pas automatiquement des crédits API OpenAI.
+
+## 3. Sécurité
+
+- `api/ai-generate.js` vérifie la session Supabase, limite la taille, valide les formats et utilise des URL fournisseurs fixes.
+- La clé utilisateur arrive dans l'en-tête `X-Kharait-Provider-Key`, pas dans le JSON du corps.
+- Aucune clé fournisseur n'est enregistrée côté serveur ou dans la base de données par Kharait.
+- Les réponses API sont marquées `no-store`.
+- L'ancienne route `/api/generate` (clé Gemini partagée) est désactivée.
+- La limite de débit en mémoire est best-effort entre instances serverless ; utiliser Redis partagé pour un service public à grande échelle.
+
+Important : comme pour toute application web, un utilisateur peut voir sa propre clé dans les outils développeur pendant qu'il l'utilise. Ne pas utiliser un ordinateur partagé non fiable et révoquer une clé si elle est suspectée compromise.
+
+## 4. Stockage cloud des cartes
+
+Les cartes peuvent être sauvegardées dans Supabase. Les politiques Row Level Security de `supabase/schema.sql` isolent les données de chaque utilisateur. Les clés IA ne sont jamais incluses dans les cartes sauvegardées.
+
+## 5. Fichiers importants
+
+- `index.html` : interface, connexion, choix du fournisseur, saisie de clé et OAuth OpenRouter.
+- `api/ai-generate.js` : passerelle BYOK authentifiée vers les cinq fournisseurs.
+- `api/generate.js` : ancienne route désactivée.
+- `supabase/schema.sql` : table de cartes et politiques RLS.
+- `supabase-config.js` : URL Supabase et clé publique Publishable.
+- `.env.example` : variables serveur Supabase uniquement.
 - `vercel.json` : en-têtes HTTP.
 
-## 4. Ce qui reste à vérifier avant mise en production
+## 6. Déploiement et tests
 
-Je ne peux pas exécuter le déploiement Vercel ni tester l'authentification contre ton projet Supabase sans tes paramètres de projet. Après avoir ajouté les clés, teste :
-- génération Gemini ;
-- création de compte, confirmation e-mail et connexion ;
-- sauvegarde et ouverture d'une carte sur un deuxième appareil ;
-- impression A4 et export PDF/PNG.
+1. Déployer la branche `feature/secure-backend-supabase`.
+2. Configurer les variables Supabase dans Vercel.
+3. Compléter `supabase-config.js`, exécuter le SQL et créer un compte Kharait.
+4. Tester chaque fournisseur avec une clé de test personnelle, d'abord avec un prompt court.
+5. Tester OAuth OpenRouter et vérifier qu'une actualisation de page efface la clé de l'état en mémoire.
 
-Le projet reste une application HTML/JS statique, sans migration Next.js. Les exports existants sont conservés.
+Le code est préparé sur la branche de travail, mais le déploiement Vercel et les appels réels aux cinq fournisseurs doivent encore être testés avec les comptes de leurs utilisateurs.
