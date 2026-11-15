@@ -136,9 +136,7 @@ svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height
 <dialog id="dlg">
   <div class="mh"><h2>توليد خريطة جديدة</h2><p>ارفع ملف الحصة، وسيحلله Gemini ويرسم الخريطة مباشرة</p></div>
   <div class="m">
-    <div class="sec"><div class="l"><i>1</i> مفتاح Gemini API</div>
-      <div class="row"><input id="key" type="password" autocomplete="off" placeholder="AIza…" dir="ltr"><button class="w" id="bEye" type="button" title="إظهار/إخفاء">👁</button></div>
-      <div class="kr"><label class="chk"><input type="checkbox" id="rem"> تذكّر المفتاح في هذا المتصفح فقط</label><button type="button" id="bForget">🗑 نسيان المفتاح</button></div><small style="color:#6b7690;font-size:11px;line-height:1.6">⚠ يُحفظ المفتاح كنص عادي في هذا المتصفح. لا تفعّل التذكّر على جهاز مشترك، ويُستحسن تقييده بنطاق موقعك (HTTP referrer) من لوحة Google AI Studio.</small></div>
+    <div class="sec"><div class="l"><i>1</i> الاتصال الآمن</div><small style="color:#6b7690;font-size:12px;line-height:1.7">يتم الاتصال بخدمة Gemini عبر الخادم. لا تحتاج إلى إدخال مفتاح API في المتصفح.</small></div>
     <div class="sec"><div class="l"><i>2</i> النموذج (الجيل الثالث: Flash / Flash-Lite)</div>
       <div class="row"><select id="mdl" dir="ltr"></select><button class="w" id="bRef" type="button" title="جلب النماذج المتاحة لمفتاحك">↻</button></div></div>
     <div class="sec"><div class="l"><i>3</i> ملفات الحصة</div>
@@ -155,7 +153,7 @@ svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height
 
 <script>
 const $=id=>document.getElementById(id);
-const MODELS=['gemini-3.6-flash','gemini-3.5-flash','gemini-3.5-flash-lite','gemini-3.1-flash-lite','gemini-3-flash-preview'];
+const MODELS=['gemini-2.5-flash','gemini-2.5-flash-lite','gemini-2.0-flash'];
 const COL=['#e08a1e','#2f6fd0','#2e9a5b','#7b3fb0','#d6336c','#12877f','#a8561a','#4a5fc1'];
 let DATA=null,files=[];
 const st=(m,e)=>{$('st').textContent=tr(m||'');$('st').className=e?'err':''};
@@ -166,7 +164,7 @@ const FR={
 'تُضبَّط الخريطة (أو الخريطتان) تلقائيًا في صفحة A4 واحدة · في الأفقي تتجاور الخريطتان: الأولى يمينًا والثانية يسارًا':"La carte (ou les deux cartes) est ajustée automatiquement sur une page A4 · en paysage, les deux cartes sont côte à côte : la première à gauche, la seconde à droite",
 '📄 A4 عمودي (Portrait)':'📄 A4 portrait','🖥 A4 أفقي (Landscape)':'🖥 A4 paysage','حسنًا':'OK','النماذج':'Modèles','نموذج الخريطة':'Modèle de carte','اختر شكل الخريطة — يُطبَّق على كل الخرائط':'Choisissez la forme de la carte — appliquée à toutes les cartes','🎨 ألوان الطباعة':'🎨 Couleurs à l\'impression','ملوّنة':'En couleurs','رمادية (بدون ألوان)':'Niveaux de gris','أبيض وأسود — توفير الحبر':'Noir et blanc — économie d\'encre',
 'مثال توضيحي — اضغط «توليد خريطة» لتوليد خريطة حصتك':'Exemple — cliquez sur « Générer une carte » pour créer la carte de votre séance','خريطتان في ورقة واحدة':'Deux cartes sur une même feuille','آخر خريطة مولَّدة (محفوظة في هذا المتصفح)':'Dernière carte générée (enregistrée dans ce navigateur)',
-'توليد خريطة جديدة':'Générer une nouvelle carte','ارفع ملف الحصة، وسيحلله Gemini ويرسم الخريطة مباشرة':"Téléversez le fichier de la séance : Gemini l'analyse et trace la carte",'مفتاح Gemini API':'Clé API Gemini','تذكّر المفتاح في هذا المتصفح فقط':'Mémoriser la clé dans ce navigateur uniquement','🗑 نسيان المفتاح':'🗑 Oublier la clé','النموذج (الجيل الثالث: Flash / Flash-Lite)':'Modèle (génération 3 : Flash / Flash-Lite)','ملفات الحصة':'Fichiers de la séance','اسحب الملفات هنا أو اضغط للاختيار':'Glissez les fichiers ici ou cliquez pour choisir','PDF · صور · نص':'PDF · images · texte','خريطة مستقلة لكل ملف (ملفان ← خريطتان في ورقة واحدة)':'Une carte par fichier (2 fichiers → 2 cartes sur la même feuille)','خيارات إضافية':'Options supplémentaires','✨ توليد الخريطة':'✨ Générer la carte',
+'توليد خريطة جديدة':'Générer une nouvelle carte','ارفع ملف الحصة، وسيحلله Gemini ويرسم الخريطة مباشرة':"Téléversez le fichier de la séance : Gemini l'analyse et trace la carte",'مفتاح Gemini API':'Clé API Gemini','الاتصال الآمن':'Connexion sécurisée','النموذج (الجيل الثالث: Flash / Flash-Lite)':'Modèle (génération 3 : Flash / Flash-Lite)','ملفات الحصة':'Fichiers de la séance','اسحب الملفات هنا أو اضغط للاختيار':'Glissez les fichiers ici ou cliquez pour choisir','PDF · صور · نص':'PDF · images · texte','خريطة مستقلة لكل ملف (ملفان ← خريطتان في ورقة واحدة)':'Une carte par fichier (2 fichiers → 2 cartes sur la même feuille)','خيارات إضافية':'Options supplémentaires','✨ توليد الخريطة':'✨ Générer la carte',
 'حذف المرحلة':"Supprimer l'étape",'حذف النشاط':"Supprimer l'activité",'إظهار/إخفاء':'Afficher/masquer','جلب النماذج المتاحة لمفتاحك':'Récupérer les modèles disponibles pour votre clé','ملاحظات (مثل: القسم المشترك مستويان 1 و2)':'Remarques (ex. classe à niveaux multiples 1 et 2)','أو الصق JSON جاهزًا: {"معلومات_الدرس":{…}}':'Ou collez un JSON prêt : {"informations_lecon":{…}}',
 'أدخل المفتاح أولًا':"Saisissez d'abord la clé",'جارٍ جلب النماذج…':'Récupération des modèles…','لم يُعثر على نماذج flash من الجيل الثالث لهذا المفتاح':'Aucun modèle Flash de génération 3 pour cette clé','تم:':'Terminé :','نموذجًا':'modèle(s)','JSON غير صالح:':'JSON invalide :','أدخل مفتاح Gemini':'Saisissez la clé Gemini','ارفع ملفًا واحدًا على الأقل':'Téléversez au moins un fichier','حجم الملفات يتجاوز 18 م.ب (حد الإرسال المباشر)':"La taille des fichiers dépasse 18 Mo (limite d'envoi direct)",'اختر ملفين فقط، أو ألغِ خيار «خريطة مستقلة لكل ملف»':'Choisissez 2 fichiers au maximum, ou décochez « Une carte par fichier »','جارٍ التحليل بـ':'Analyse avec','(ملفان بالتوازي)':'(2 fichiers en parallèle)','… قد يستغرق دقيقة':'… cela peut prendre une minute','تعذّر التوليد:':'Échec de la génération :','ردّ فارغ':'Réponse vide','تعذّر تحليل ملف:':"Échec de l'analyse d'un fichier :",'م.ب':'Mo','تم نسيان المفتاح':'Clé oubliée','✔ تم النسخ':'✔ Copié',
 'خطاطة ذهنية —':'Carte mentale —','المادة':'Matière','المستوى':'Niveau','الوحدة':'Unité','الأسبوع':'Semaine','الحصة':'Séance','المدة':'Durée','عند نهاية الحصة':'À la fin de la séance','الوسائل':'Moyens didactiques','معلومات إضافية':'Informations complémentaires','كلمات بصرية':'Mots-outils','استراتيجيات':'Stratégies','قواعد':'Règles',
@@ -217,19 +215,14 @@ $('bLang').onclick=()=>{LANG=LANG==='fr'?'ar':'fr';ls.set('gm_lang',LANG);applyL
 
 function fillModels(list){const cur=ls.get('gm_model')||list[0];$('mdl').innerHTML=list.map(m=>`<option${m===cur?' selected':''}>${m}</option>`).join('')}
 fillModels(MODELS);
-$('key').value=ls.get('gm_key')||'';$('rem').checked=!!ls.get('gm_key');
-$('bOpen').onclick=()=>{$('dlg').showModal();if($('key').value.trim()&&!window.__mf){window.__mf=1;$('bRef').click()}};$('bX').onclick=()=>$('dlg').close();
+$('bOpen').onclick=()=>$('dlg').showModal();$('bX').onclick=()=>$('dlg').close();
 const showF=()=>{$('sepw').hidden=files.length<2;$('fl').innerHTML=files.map((f,i)=>`<span class="chip">${esc(f.name)} · ${(f.size/1048576).toFixed(1)} ${tr('م.ب')} <u data-i="${i}">✕</u></span>`).join('')};
 $('fl').onclick=e=>{const i=e.target.dataset.i;if(i!=null){files.splice(+i,1);showF()}};
 const addF=l=>{files.push(...l);showF()};
 $('dz').onclick=()=>$('fi').click();$('fi').onchange=e=>{addF([...e.target.files]);e.target.value=''};
 $('dz').ondragover=e=>{e.preventDefault();$('dz').classList.add('on')};$('dz').ondragleave=()=>$('dz').classList.remove('on');
 $('dz').ondrop=e=>{e.preventDefault();$('dz').classList.remove('on');addF([...e.dataTransfer.files])};
-$('bEye').onclick=()=>{$('key').type=$('key').type==='password'?'text':'password'};
-$('bRef').onclick=async()=>{const k=$('key').value.trim();if(!k)return st('أدخل المفتاح أولًا',1);st('جارٍ جلب النماذج…');
-  try{const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':k}});const j=await r.json();if(!r.ok)throw new Error(j.error?.message||r.status);
-    const l=(j.models||[]).map(m=>m.name.replace('models/','')).filter(n=>/^gemini-3(\.\d+)?-flash(-lite)?(-preview)?$/.test(n)||/^gemini-3(\.\d+)?-flash(-lite)?-preview-\d/.test(n));
-    if(!l.length)throw new Error('لم يُعثر على نماذج flash من الجيل الثالث لهذا المفتاح');fillModels(l);st(tr('تم:')+' '+l.length+' '+tr('نموذجًا'))}catch(e){st(e.message,1)}};
+
 
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const tx=x=>x==null?'':typeof x==='string'||typeof x==='number'?String(x):Array.isArray(x)?x.map(tx).join('، '):Object.values(x).map(tx).filter(Boolean).join(' — ');
@@ -260,42 +253,25 @@ const b64=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.re
 const LVL={p:['الابتدائي المغربي',"de l'école primaire marocaine"],c:['الإعدادي المغربي','du collège marocain'],h:['الثانوي التأهيلي المغربي','du lycée marocain']};
 const lvlFix=t=>{const l=$('lvl').value;if(l==='p')return t;return t.replace(LVL.p[0],LVL[l][0]).replace(LVL.p[1],LVL[l][1])};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-async function callG(k,m,fs){
+async function callG(m,fs){
   const parts=[{text:lvlFix(LANG==='fr'?PROMPT_FR:PROMPT_AR)+($('note').value.trim()?(LANG==='fr'?"\nRemarques de l'utilisateur : ":'\nملاحظات المستخدم: ')+$('note').value.trim():'')}];
   for(const f of fs){
     if(/\.(pptx|docx)$/i.test(f.name)){parts.push(...await officeParts(f));continue}
     if(/^text\/|json$/.test(f.type)||/\.(txt|md|json)$/i.test(f.name))parts.push({text:'--- '+f.name+' ---\n'+await f.text()});
     else parts.push({inlineData:{mimeType:f.type||(/\.pdf$/i.test(f.name)?'application/pdf':'image/jpeg'),data:await b64(f)}});
   }
-  const body=JSON.stringify({contents:[{role:'user',parts}],generationConfig:{temperature:.2,responseMimeType:'application/json'}});
   let lastErr;
   for(let a=0;a<3;a++){
     try{
-      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':k},body});
+      const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,parts})});
       const j=await r.json().catch(()=>({}));
-      if(!r.ok){const e=new Error(j.error?.message||('HTTP '+r.status));e.retry=[429,500,502,503,504].includes(r.status);throw e}
-      const t=(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('');
-      if(!t){const e=new Error(tr('ردّ فارغ')+(j.promptFeedback?.blockReason?' ('+j.promptFeedback.blockReason+')':''));e.retry=!j.promptFeedback?.blockReason;throw e}
+      if(!r.ok){const e=new Error(j.error||('HTTP '+r.status));e.retry=[429,500,502,503,504].includes(r.status);throw e}
+      const t=j.text||'';
+      if(!t){const e=new Error(tr('ردّ فارغ'));e.retry=true;throw e}
       try{return canon(parse(t))}catch(pe){pe.retry=true;throw pe}
     }catch(e){lastErr=e;if(!e.retry||a===2)break;st(tr('إعادة المحاولة تلقائيًا…'));await sleep(1500*(a+1))}
   }
   throw lastErr;
-}
-async function generate(){
-  const k=$('key').value.trim(),m=$('mdl').value,pasted=$('js').value.trim();
-  if(pasted){try{return render(canon(parseAny(pasted)))}catch(e){return st(tr('JSON غير صالح:')+' '+e.message,1)}}
-  if(files.length&&files.every(f=>/\.json$/i.test(f.name))){try{const out=[];for(const f of files)out.push(...[].concat(canon(parseAny(await f.text()))));if(!out.every(o=>o&&o['معلومات_الدرس']))throw new Error('معلومات_الدرس');files=[];showF();return render(out.slice(0,2))}catch(e){return st(tr('ملف JSON غير صالح:')+' '+e.message,1)}}
-  if(!k)return st('أدخل مفتاح Gemini',1);if(!files.length&&!$('note').value.trim())return st('ارفع ملفًا واحدًا على الأقل',1);
-  if(files.filter(f=>!/\.(pptx|docx)$/i.test(f.name)).reduce((a,f)=>a+f.size,0)>18e6)return st('حجم الملفات يتجاوز 18 م.ب (حد الإرسال المباشر)',1);
-  const sep=files.length>=2&&$('sep').checked;if(sep&&files.length>2)return st('اختر ملفين فقط، أو ألغِ خيار «خريطة مستقلة لكل ملف»',1);
-  if($('rem').checked)ls.set('gm_key',k);else ls.del('gm_key');ls.set('gm_model',m);
-  $('bGo').disabled=true;st(tr('جارٍ التحليل بـ')+' '+m+(sep?' '+tr('(ملفان بالتوازي)'):'')+' '+tr('… قد يستغرق دقيقة'));
-  try{
-    const res=await Promise.allSettled((sep?files.map(f=>[f]):[files]).map(j=>callG(k,m,j)));
-    const ok=res.filter(r=>r.status==='fulfilled').map(r=>r.value),bad=res.filter(r=>r.status==='rejected').map(r=>r.reason.message);
-    if(!ok.length)throw new Error(bad[0]);
-    render(ok);pushHist(ok);if(bad.length)$('tag').textContent+=' — '+tr('تعذّر تحليل ملف:')+' '+bad[0];
-  }catch(e){st(tr('تعذّر التوليد:')+' '+e.message,1)}finally{$('bGo').disabled=false}
 }
 function parse(t){t=t.trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();const a=t.indexOf('{'),b=t.lastIndexOf('}');return JSON.parse(t.slice(a,b+1))}
 function parseAny(t){t=t.trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();return t[0]==='['?JSON.parse(t):parse(t)}
@@ -410,7 +386,7 @@ const DEMO={__demo:1,"معلومات_الدرس":{"المادة":"اللغة ا�
 {"المرحلة":"قراءة م2: تنمية الطلاقة","المدة":"40 د","الأنشطة":[{"عنوان_النشاط":"استرجاع","سير_النشاط":["عنوان النص وعمّ يتحدث"]},{"عنوان_النشاط":"قراءة متتابعة","سير_النشاط":["قراءة مقاطع النص متتابعة ثم أسئلة الفهم"]}]},
 {"المرحلة":"اختتام الحصة","المدة":"آخر الحصة","الأنشطة":[{"عنوان_النشاط":"ماذا تعلمنا اليوم؟","سير_النشاط":["إعادة سرد مقطع النهاية وقراءة الدال"]}]}]};
 {let last=null;try{last=JSON.parse(ls.get('gm_last'))}catch(_){}DATA=last?(Array.isArray(last)?last:[last]):[LANG==='fr'?DEMO_FR:DEMO];if(ls.get('gm_nolx'))document.body.classList.add('nolx');applyLang();if(ls.get('gm_nolx'))setLx(true)}
-$('bForget').onclick=()=>{ls.del('gm_key');$('key').value='';$('rem').checked=false;st('تم نسيان المفتاح')};
+
 $('bCopy').onclick=async()=>{const t=JSON.stringify(outLang(DATA.length===1?DATA[0]:DATA),(k,v)=>k.startsWith('__')?undefined:v,2);
   try{await navigator.clipboard.writeText(t)}catch(_){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove()}
   const b=$('bCopy'),o=b.textContent;b.textContent=tr('✔ تم النسخ');setTimeout(()=>b.textContent=o,1500)};
