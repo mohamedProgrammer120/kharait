@@ -106,9 +106,34 @@ html[dir=ltr] .st .d{margin-right:0;margin-left:auto}html[dir=ltr] .st ul{paddin
 svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height:100%}
 [contenteditable]:focus{outline:2px dashed #e9b949;outline-offset:2px}
 @media print{[data-ph]:empty:before{content:''}.ctl{display:none!important}.box.emp{display:none}.d:has([data-ph]:empty){display:none}header,#tag,#stage>br,dialog{display:none!important}html,body{background:#fff;height:auto;overflow:visible}#stage{padding:0!important;overflow:visible!important}.mp{box-shadow:none;border-radius:0;break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+/* Mandatory sign-in gate: hide the application until Supabase confirms a session. */
+#authGate{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#101d38,#23477e);font-family:Segoe UI,Tahoma,Arial,sans-serif;direction:ltr}
+body:not(.auth-ok) #authGate{display:flex}
+body:not(.auth-ok)>:not(#authGate):not(script){visibility:hidden;pointer-events:none}
+.auth-card{width:min(420px,100%);padding:30px;border-radius:22px;background:#fff;box-shadow:0 24px 80px #0005;display:grid;gap:12px;color:#1d2a44}
+.auth-logo{font-size:38px;text-align:center}.auth-card h1{font-size:22px;text-align:center;margin:0}.auth-card p{font-size:13px;text-align:center;color:#6b7690;margin:0 0 8px;line-height:1.6}
+.auth-card label{font-size:13px;font-weight:700}.auth-card input{width:100%;padding:12px;border:1px solid #ccd5e5;border-radius:10px;background:#f8faff;color:#1d2a44;direction:ltr}
+.auth-card button{padding:12px}.auth-card .auth-secondary{background:#e8edf6;color:#1d2a44}
+#authMessage{min-height:20px;margin-top:4px}
+
 </style>
 </head>
 <body>
+<div id="authGate" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <div class="auth-card">
+    <div class="auth-logo">🧠</div>
+    <h1 id="authTitle">Kharait — Connexion sécurisée</h1>
+    <p>Connectez-vous pour accéder à vos cartes mentales.</p>
+    <label for="authEmail">Adresse e-mail</label>
+    <input id="authEmail" type="email" autocomplete="username" placeholder="vous@exemple.com" dir="ltr">
+    <label for="authPassword">Mot de passe</label>
+    <input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••" dir="ltr">
+    <button id="authLogin" type="button">Se connecter</button>
+    <button id="authSignup" type="button" class="auth-secondary">Créer mon compte</button>
+    <p id="authMessage" aria-live="polite">Configurez Supabase pour activer l'accès sécurisé.</p>
+  </div>
+</div>
 <header>
   <h1>🧠 مولّد الخرائط الذهنية للحصة</h1>
   <nav id="bar">
@@ -117,7 +142,7 @@ svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height
     <button class="p" id="bOpen"><i>✨</i>توليد خريطة</button>
     <button id="bStr"><i>🧱</i>هيكلة الحصة</button>
     <button id="bLx"><i>🗂</i><span>إخفاء المعلومات الإضافية</span></button>
-    <button id="bPng"><i>🖼</i>صورة PNG</button><button id="bPdf"><i>📄</i>تصدير PDF</button><button id="bHist"><i>🕘</i>السجل</button>
+    <button id="bPng"><i>🖼</i>صورة PNG</button><button id="bPdf"><i>📄</i>تصدير PDF</button><button id="bHist"><i>🕘</i>السجل</button><button id="bCloud"><i>☁️</i>حسابي / مزامنة</button>
     <button id="bPrint"><i>🖨</i>طباعة / PDF</button>
     <button id="bCopy"><i>📋</i>نسخ JSON</button>
     <button id="bJson"><i>⬇</i>تنزيل JSON</button>
@@ -128,6 +153,16 @@ svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height
 <dialog id="dP"><div class="mh"><h2>الطباعة</h2><p>تُضبَّط الخريطة (أو الخريطتان) تلقائيًا في صفحة A4 واحدة · في الأفقي تتجاور الخريطتان: الأولى يمينًا والثانية يسارًا</p></div><div class="m"><label class="sec"><span class="l">🎨 ألوان الطباعة</span><select id="pm"><option value="c">ملوّنة</option><option value="g">رمادية (بدون ألوان)</option><option value="b">أبيض وأسود — توفير الحبر</option></select></label><button type="button" onclick="doPrint('p')">📄 A4 عمودي (Portrait)</button><button type="button" class="s" onclick="doPrint('l')">🖥 A4 أفقي (Landscape)</button></div></dialog><dialog id="dT"><div class="mh"><h2>نموذج الخريطة</h2><p>اختر شكل الخريطة — يُطبَّق على كل الخرائط</p></div><div class="m"><div id="tg"></div><button type="button" onclick="$('dT').close()">إغلاق</button></div></dialog>
 <dialog id="dI"><div class="mh"><h2 id="dIt">تثبيت التطبيق</h2></div><div class="m"><div id="dIb" style="line-height:1.9;font-size:14px"></div><button type="button" onclick="$('dI').close()">حسنًا</button></div></dialog>
 <dialog id="dH"><div class="mh"><h2>سجل الخرائط</h2><p>آخر 10 خرائط مولَّدة في هذا المتصفح</p></div><div class="m"><div id="hb"></div><div class="row"><button type="button" class="s" id="hClr" style="background:#fde7e5;color:#b3261e">مسح السجل</button><button type="button" onclick="$('dH').close()">إغلاق</button></div></div></dialog>
+<dialog id="dCloud"><div class="mh"><h2>حسابي ومزامنة الخرائط</h2><p>سجّل الدخول لحفظ خرائطك في حسابك وفتحها من أجهزة أخرى</p></div><div class="m">
+  <div class="sec"><span class="l">البريد الإلكتروني</span><input id="cloudEmail" type="email" autocomplete="email" placeholder="name@example.com" dir="ltr"></div>
+  <div class="sec"><span class="l">كلمة المرور</span><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="••••••••" dir="ltr"></div>
+  <div id="cloudStatus" style="font-size:12px;color:#6b7690;line-height:1.7">أدخل إعدادات Supabase في الملف supabase-config.js لتفعيل المزامنة.</div>
+  <div class="row"><button id="cloudLogin" type="button">تسجيل الدخول</button><button id="cloudSignup" type="button" class="s" style="background:#e3e8f3;color:#1d2a44">إنشاء حساب</button></div>
+  <div class="row"><button id="cloudSave" type="button">☁️ حفظ الخريطة الحالية</button><button id="cloudLogout" type="button" class="s" style="background:#e3e8f3;color:#1d2a44">تسجيل الخروج</button></div>
+  <div class="row"><b>خرائطي المحفوظة</b><button id="cloudRefresh" type="button" class="s" style="background:#e3e8f3;color:#1d2a44">تحديث</button></div>
+  <div id="cloudList"></div>
+  <button type="button" class="s" onclick="$('dCloud').close()" style="background:#e3e8f3;color:#1d2a44">إغلاق</button>
+</div></dialog>
 <div id="stage">
   <div id="tag"></div><br>
   <div id="zw"><div id="zoomer"><div id="map"></div></div></div>
@@ -136,9 +171,7 @@ svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height
 <dialog id="dlg">
   <div class="mh"><h2>توليد خريطة جديدة</h2><p>ارفع ملف الحصة، وسيحلله Gemini ويرسم الخريطة مباشرة</p></div>
   <div class="m">
-    <div class="sec"><div class="l"><i>1</i> مفتاح Gemini API</div>
-      <div class="row"><input id="key" type="password" autocomplete="off" placeholder="AIza…" dir="ltr"><button class="w" id="bEye" type="button" title="إظهار/إخفاء">👁</button></div>
-      <div class="kr"><label class="chk"><input type="checkbox" id="rem"> تذكّر المفتاح في هذا المتصفح فقط</label><button type="button" id="bForget">🗑 نسيان المفتاح</button></div><small style="color:#6b7690;font-size:11px;line-height:1.6">⚠ يُحفظ المفتاح كنص عادي في هذا المتصفح. لا تفعّل التذكّر على جهاز مشترك، ويُستحسن تقييده بنطاق موقعك (HTTP referrer) من لوحة Google AI Studio.</small></div>
+    <div class="sec"><div class="l"><i>1</i> الاتصال الآمن</div><small style="color:#6b7690;font-size:12px;line-height:1.7">يتم الاتصال بخدمة Gemini عبر الخادم. لا تحتاج إلى إدخال مفتاح API في المتصفح.</small></div>
     <div class="sec"><div class="l"><i>2</i> النموذج (الجيل الثالث: Flash / Flash-Lite)</div>
       <div class="row"><select id="mdl" dir="ltr"></select><button class="w" id="bRef" type="button" title="جلب النماذج المتاحة لمفتاحك">↻</button></div></div>
     <div class="sec"><div class="l"><i>3</i> ملفات الحصة</div>
@@ -153,9 +186,11 @@ svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height
   </div>
 </dialog>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-const MODELS=['gemini-3.6-flash','gemini-3.5-flash','gemini-3.5-flash-lite','gemini-3.1-flash-lite','gemini-3-flash-preview'];
+const MODELS=['gemini-2.5-flash','gemini-2.5-flash-lite'];
 const COL=['#e08a1e','#2f6fd0','#2e9a5b','#7b3fb0','#d6336c','#12877f','#a8561a','#4a5fc1'];
 let DATA=null,files=[];
 const st=(m,e)=>{$('st').textContent=tr(m||'');$('st').className=e?'err':''};
@@ -166,9 +201,9 @@ const FR={
 'تُضبَّط الخريطة (أو الخريطتان) تلقائيًا في صفحة A4 واحدة · في الأفقي تتجاور الخريطتان: الأولى يمينًا والثانية يسارًا':"La carte (ou les deux cartes) est ajustée automatiquement sur une page A4 · en paysage, les deux cartes sont côte à côte : la première à gauche, la seconde à droite",
 '📄 A4 عمودي (Portrait)':'📄 A4 portrait','🖥 A4 أفقي (Landscape)':'🖥 A4 paysage','حسنًا':'OK','النماذج':'Modèles','نموذج الخريطة':'Modèle de carte','اختر شكل الخريطة — يُطبَّق على كل الخرائط':'Choisissez la forme de la carte — appliquée à toutes les cartes','🎨 ألوان الطباعة':'🎨 Couleurs à l\'impression','ملوّنة':'En couleurs','رمادية (بدون ألوان)':'Niveaux de gris','أبيض وأسود — توفير الحبر':'Noir et blanc — économie d\'encre',
 'مثال توضيحي — اضغط «توليد خريطة» لتوليد خريطة حصتك':'Exemple — cliquez sur « Générer une carte » pour créer la carte de votre séance','خريطتان في ورقة واحدة':'Deux cartes sur une même feuille','آخر خريطة مولَّدة (محفوظة في هذا المتصفح)':'Dernière carte générée (enregistrée dans ce navigateur)',
-'توليد خريطة جديدة':'Générer une nouvelle carte','ارفع ملف الحصة، وسيحلله Gemini ويرسم الخريطة مباشرة':"Téléversez le fichier de la séance : Gemini l'analyse et trace la carte",'مفتاح Gemini API':'Clé API Gemini','تذكّر المفتاح في هذا المتصفح فقط':'Mémoriser la clé dans ce navigateur uniquement','🗑 نسيان المفتاح':'🗑 Oublier la clé','النموذج (الجيل الثالث: Flash / Flash-Lite)':'Modèle (génération 3 : Flash / Flash-Lite)','ملفات الحصة':'Fichiers de la séance','اسحب الملفات هنا أو اضغط للاختيار':'Glissez les fichiers ici ou cliquez pour choisir','PDF · صور · نص':'PDF · images · texte','خريطة مستقلة لكل ملف (ملفان ← خريطتان في ورقة واحدة)':'Une carte par fichier (2 fichiers → 2 cartes sur la même feuille)','خيارات إضافية':'Options supplémentaires','✨ توليد الخريطة':'✨ Générer la carte',
+'توليد خريطة جديدة':'Générer une nouvelle carte','ارفع ملف الحصة، وسيحلله Gemini ويرسم الخريطة مباشرة':"Téléversez le fichier de la séance : Gemini l'analyse et trace la carte",'مفتاح Gemini API':'Clé API Gemini','الاتصال الآمن':'Connexion sécurisée','النموذج (الجيل الثالث: Flash / Flash-Lite)':'Modèle (génération 3 : Flash / Flash-Lite)','ملفات الحصة':'Fichiers de la séance','اسحب الملفات هنا أو اضغط للاختيار':'Glissez les fichiers ici ou cliquez pour choisir','PDF · صور · نص':'PDF · images · texte','خريطة مستقلة لكل ملف (ملفان ← خريطتان في ورقة واحدة)':'Une carte par fichier (2 fichiers → 2 cartes sur la même feuille)','خيارات إضافية':'Options supplémentaires','✨ توليد الخريطة':'✨ Générer la carte',
 'حذف المرحلة':"Supprimer l'étape",'حذف النشاط':"Supprimer l'activité",'إظهار/إخفاء':'Afficher/masquer','جلب النماذج المتاحة لمفتاحك':'Récupérer les modèles disponibles pour votre clé','ملاحظات (مثل: القسم المشترك مستويان 1 و2)':'Remarques (ex. classe à niveaux multiples 1 et 2)','أو الصق JSON جاهزًا: {"معلومات_الدرس":{…}}':'Ou collez un JSON prêt : {"informations_lecon":{…}}',
-'أدخل المفتاح أولًا':"Saisissez d'abord la clé",'جارٍ جلب النماذج…':'Récupération des modèles…','لم يُعثر على نماذج flash من الجيل الثالث لهذا المفتاح':'Aucun modèle Flash de génération 3 pour cette clé','تم:':'Terminé :','نموذجًا':'modèle(s)','JSON غير صالح:':'JSON invalide :','أدخل مفتاح Gemini':'Saisissez la clé Gemini','ارفع ملفًا واحدًا على الأقل':'Téléversez au moins un fichier','حجم الملفات يتجاوز 18 م.ب (حد الإرسال المباشر)':"La taille des fichiers dépasse 18 Mo (limite d'envoi direct)",'اختر ملفين فقط، أو ألغِ خيار «خريطة مستقلة لكل ملف»':'Choisissez 2 fichiers au maximum, ou décochez « Une carte par fichier »','جارٍ التحليل بـ':'Analyse avec','(ملفان بالتوازي)':'(2 fichiers en parallèle)','… قد يستغرق دقيقة':'… cela peut prendre une minute','تعذّر التوليد:':'Échec de la génération :','ردّ فارغ':'Réponse vide','تعذّر تحليل ملف:':"Échec de l'analyse d'un fichier :",'م.ب':'Mo','تم نسيان المفتاح':'Clé oubliée','✔ تم النسخ':'✔ Copié',
+'أدخل المفتاح أولًا':"Saisissez d'abord la clé",'جارٍ جلب النماذج…':'Récupération des modèles…','لم يُعثر على نماذج flash من الجيل الثالث لهذا المفتاح':'Aucun modèle Flash de génération 3 pour cette clé','تم:':'Terminé :','نموذجًا':'modèle(s)','JSON غير صالح:':'JSON invalide :','أدخل مفتاح Gemini':'Saisissez la clé Gemini','ارفع ملفًا واحدًا على الأقل':'Téléversez au moins un fichier','حجم الملفات يتجاوز 3 م.ب (حد الإرسال الآمن)':"La taille des fichiers dépasse 3 Mo (limite d'envoi sécurisé)",'اختر ملفين فقط، أو ألغِ خيار «خريطة مستقلة لكل ملف»':'Choisissez 2 fichiers au maximum, ou décochez « Une carte par fichier »','جارٍ التحليل بـ':'Analyse avec','(ملفان بالتوازي)':'(2 fichiers en parallèle)','… قد يستغرق دقيقة':'… cela peut prendre une minute','تعذّر التوليد:':'Échec de la génération :','ردّ فارغ':'Réponse vide','تعذّر تحليل ملف:':"Échec de l'analyse d'un fichier :",'م.ب':'Mo','تم نسيان المفتاح':'Clé oubliée','✔ تم النسخ':'✔ Copié',
 'خطاطة ذهنية —':'Carte mentale —','المادة':'Matière','المستوى':'Niveau','الوحدة':'Unité','الأسبوع':'Semaine','الحصة':'Séance','المدة':'Durée','عند نهاية الحصة':'À la fin de la séance','الوسائل':'Moyens didactiques','معلومات إضافية':'Informations complémentaires','كلمات بصرية':'Mots-outils','استراتيجيات':'Stratégies','قواعد':'Règles',
 'عنوان الحصة':'Titre de la séance','اسم المرحلة':"Nom de l'étape",'مدة':'durée','عنوان النشاط':"Titre de l'activité",'خطوة':'étape','الصيغة الافتتاحية':'Formule introductive','هدف':'objectif','وسيلة':'moyen','اكتب هنا…':'Écrivez ici…','＋ مرحلة':'＋ Étape','＋ نشاط':'＋ Activité','＋ خطوة':'＋ Phase','＋ هدف':'＋ Objectif','＋ وسيلة':'＋ Moyen',
 'مرحلة جديدة':'Nouvelle étape','نشاط جديد':'Nouvelle activité','خطوة جديدة':'Nouvelle phase','هدف جديد':'Nouvel objectif','وسيلة جديدة':'Nouveau moyen','حذف هذه المرحلة؟':'Supprimer cette étape ?','حذف هذا النشاط؟':'Supprimer cette activité ?','د':'min',
@@ -217,19 +252,14 @@ $('bLang').onclick=()=>{LANG=LANG==='fr'?'ar':'fr';ls.set('gm_lang',LANG);applyL
 
 function fillModels(list){const cur=ls.get('gm_model')||list[0];$('mdl').innerHTML=list.map(m=>`<option${m===cur?' selected':''}>${m}</option>`).join('')}
 fillModels(MODELS);
-$('key').value=ls.get('gm_key')||'';$('rem').checked=!!ls.get('gm_key');
-$('bOpen').onclick=()=>{$('dlg').showModal();if($('key').value.trim()&&!window.__mf){window.__mf=1;$('bRef').click()}};$('bX').onclick=()=>$('dlg').close();
+$('bOpen').onclick=()=>$('dlg').showModal();$('bX').onclick=()=>$('dlg').close();
 const showF=()=>{$('sepw').hidden=files.length<2;$('fl').innerHTML=files.map((f,i)=>`<span class="chip">${esc(f.name)} · ${(f.size/1048576).toFixed(1)} ${tr('م.ب')} <u data-i="${i}">✕</u></span>`).join('')};
 $('fl').onclick=e=>{const i=e.target.dataset.i;if(i!=null){files.splice(+i,1);showF()}};
 const addF=l=>{files.push(...l);showF()};
 $('dz').onclick=()=>$('fi').click();$('fi').onchange=e=>{addF([...e.target.files]);e.target.value=''};
 $('dz').ondragover=e=>{e.preventDefault();$('dz').classList.add('on')};$('dz').ondragleave=()=>$('dz').classList.remove('on');
 $('dz').ondrop=e=>{e.preventDefault();$('dz').classList.remove('on');addF([...e.dataTransfer.files])};
-$('bEye').onclick=()=>{$('key').type=$('key').type==='password'?'text':'password'};
-$('bRef').onclick=async()=>{const k=$('key').value.trim();if(!k)return st('أدخل المفتاح أولًا',1);st('جارٍ جلب النماذج…');
-  try{const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':k}});const j=await r.json();if(!r.ok)throw new Error(j.error?.message||r.status);
-    const l=(j.models||[]).map(m=>m.name.replace('models/','')).filter(n=>/^gemini-3(\.\d+)?-flash(-lite)?(-preview)?$/.test(n)||/^gemini-3(\.\d+)?-flash(-lite)?-preview-\d/.test(n));
-    if(!l.length)throw new Error('لم يُعثر على نماذج flash من الجيل الثالث لهذا المفتاح');fillModels(l);st(tr('تم:')+' '+l.length+' '+tr('نموذجًا'))}catch(e){st(e.message,1)}};
+
 
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const tx=x=>x==null?'':typeof x==='string'||typeof x==='number'?String(x):Array.isArray(x)?x.map(tx).join('، '):Object.values(x).map(tx).filter(Boolean).join(' — ');
@@ -260,38 +290,40 @@ const b64=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.re
 const LVL={p:['الابتدائي المغربي',"de l'école primaire marocaine"],c:['الإعدادي المغربي','du collège marocain'],h:['الثانوي التأهيلي المغربي','du lycée marocain']};
 const lvlFix=t=>{const l=$('lvl').value;if(l==='p')return t;return t.replace(LVL.p[0],LVL[l][0]).replace(LVL.p[1],LVL[l][1])};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-async function callG(k,m,fs){
+async function callG(m,fs){
   const parts=[{text:lvlFix(LANG==='fr'?PROMPT_FR:PROMPT_AR)+($('note').value.trim()?(LANG==='fr'?"\nRemarques de l'utilisateur : ":'\nملاحظات المستخدم: ')+$('note').value.trim():'')}];
   for(const f of fs){
     if(/\.(pptx|docx)$/i.test(f.name)){parts.push(...await officeParts(f));continue}
     if(/^text\/|json$/.test(f.type)||/\.(txt|md|json)$/i.test(f.name))parts.push({text:'--- '+f.name+' ---\n'+await f.text()});
     else parts.push({inlineData:{mimeType:f.type||(/\.pdf$/i.test(f.name)?'application/pdf':'image/jpeg'),data:await b64(f)}});
   }
-  const body=JSON.stringify({contents:[{role:'user',parts}],generationConfig:{temperature:.2,responseMimeType:'application/json'}});
   let lastErr;
   for(let a=0;a<3;a++){
     try{
-      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':k},body});
+      const {data:sessionData}=await cloudClient.auth.getSession();
+      const accessToken=sessionData.session?.access_token;
+      if(!accessToken)throw new Error('Connectez-vous pour utiliser Kharait.');
+      const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken},body:JSON.stringify({model:m,parts})});
       const j=await r.json().catch(()=>({}));
-      if(!r.ok){const e=new Error(j.error?.message||('HTTP '+r.status));e.retry=[429,500,502,503,504].includes(r.status);throw e}
-      const t=(j.candidates?.[0]?.content?.parts||[]).map(p=>p.text||'').join('');
-      if(!t){const e=new Error(tr('ردّ فارغ')+(j.promptFeedback?.blockReason?' ('+j.promptFeedback.blockReason+')':''));e.retry=!j.promptFeedback?.blockReason;throw e}
+      if(!r.ok){const e=new Error(j.error||('HTTP '+r.status));e.retry=[429,500,502,503,504].includes(r.status);throw e}
+      const t=j.text||'';
+      if(!t){const e=new Error(tr('ردّ فارغ'));e.retry=true;throw e}
       try{return canon(parse(t))}catch(pe){pe.retry=true;throw pe}
     }catch(e){lastErr=e;if(!e.retry||a===2)break;st(tr('إعادة المحاولة تلقائيًا…'));await sleep(1500*(a+1))}
   }
   throw lastErr;
 }
 async function generate(){
-  const k=$('key').value.trim(),m=$('mdl').value,pasted=$('js').value.trim();
+  const m=$('mdl').value,pasted=$('js').value.trim();
   if(pasted){try{return render(canon(parseAny(pasted)))}catch(e){return st(tr('JSON غير صالح:')+' '+e.message,1)}}
   if(files.length&&files.every(f=>/\.json$/i.test(f.name))){try{const out=[];for(const f of files)out.push(...[].concat(canon(parseAny(await f.text()))));if(!out.every(o=>o&&o['معلومات_الدرس']))throw new Error('معلومات_الدرس');files=[];showF();return render(out.slice(0,2))}catch(e){return st(tr('ملف JSON غير صالح:')+' '+e.message,1)}}
-  if(!k)return st('أدخل مفتاح Gemini',1);if(!files.length&&!$('note').value.trim())return st('ارفع ملفًا واحدًا على الأقل',1);
-  if(files.filter(f=>!/\.(pptx|docx)$/i.test(f.name)).reduce((a,f)=>a+f.size,0)>18e6)return st('حجم الملفات يتجاوز 18 م.ب (حد الإرسال المباشر)',1);
+if(!files.length&&!$('note').value.trim())return st('ارفع ملفًا واحدًا على الأقل',1);
+  if(files.filter(f=>!/\.(pptx|docx)$/i.test(f.name)).reduce((a,f)=>a+f.size,0)>3e6)return st('حجم الملفات يتجاوز 3 م.ب (حد الإرسال الآمن)',1);
   const sep=files.length>=2&&$('sep').checked;if(sep&&files.length>2)return st('اختر ملفين فقط، أو ألغِ خيار «خريطة مستقلة لكل ملف»',1);
-  if($('rem').checked)ls.set('gm_key',k);else ls.del('gm_key');ls.set('gm_model',m);
+  ls.set('gm_model',m);
   $('bGo').disabled=true;st(tr('جارٍ التحليل بـ')+' '+m+(sep?' '+tr('(ملفان بالتوازي)'):'')+' '+tr('… قد يستغرق دقيقة'));
   try{
-    const res=await Promise.allSettled((sep?files.map(f=>[f]):[files]).map(j=>callG(k,m,j)));
+    const res=await Promise.allSettled((sep?files.map(f=>[f]):[files]).map(j=>callG(m,j)));
     const ok=res.filter(r=>r.status==='fulfilled').map(r=>r.value),bad=res.filter(r=>r.status==='rejected').map(r=>r.reason.message);
     if(!ok.length)throw new Error(bad[0]);
     render(ok);pushHist(ok);if(bad.length)$('tag').textContent+=' — '+tr('تعذّر تحليل ملف:')+' '+bad[0];
@@ -410,7 +442,7 @@ const DEMO={__demo:1,"معلومات_الدرس":{"المادة":"اللغة ا�
 {"المرحلة":"قراءة م2: تنمية الطلاقة","المدة":"40 د","الأنشطة":[{"عنوان_النشاط":"استرجاع","سير_النشاط":["عنوان النص وعمّ يتحدث"]},{"عنوان_النشاط":"قراءة متتابعة","سير_النشاط":["قراءة مقاطع النص متتابعة ثم أسئلة الفهم"]}]},
 {"المرحلة":"اختتام الحصة","المدة":"آخر الحصة","الأنشطة":[{"عنوان_النشاط":"ماذا تعلمنا اليوم؟","سير_النشاط":["إعادة سرد مقطع النهاية وقراءة الدال"]}]}]};
 {let last=null;try{last=JSON.parse(ls.get('gm_last'))}catch(_){}DATA=last?(Array.isArray(last)?last:[last]):[LANG==='fr'?DEMO_FR:DEMO];if(ls.get('gm_nolx'))document.body.classList.add('nolx');applyLang();if(ls.get('gm_nolx'))setLx(true)}
-$('bForget').onclick=()=>{ls.del('gm_key');$('key').value='';$('rem').checked=false;st('تم نسيان المفتاح')};
+
 $('bCopy').onclick=async()=>{const t=JSON.stringify(outLang(DATA.length===1?DATA[0]:DATA),(k,v)=>k.startsWith('__')?undefined:v,2);
   try{await navigator.clipboard.writeText(t)}catch(_){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove()}
   const b=$('bCopy'),o=b.textContent;b.textContent=tr('✔ تم النسخ');setTimeout(()=>b.textContent=o,1500)};
@@ -439,6 +471,91 @@ $('bPng').onclick=async()=>{
     const base=location.href.split('#')[0].split('?')[0],mf={name:'مولّد الخرائط الذهنية للحصة',short_name:'خرائط الحصة',start_url:base,scope:base.replace(/[^/]*$/,''),display:'standalone',background_color:'#e9edf5',theme_color:'#14264a',lang:'ar',dir:'rtl',icons:[{src:i192,sizes:'192x192',type:'image/png',purpose:'any'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any'}]};
     const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/manifest+json'}));h.appendChild(l)}
 }catch(_){}})();
+
+
+/* ===== optional Supabase account and cross-device map storage ===== */
+let cloudClient=null,cloudUser=null;
+const cloudMessage=(message,error=false)=>{const el=$('cloudStatus');if(el){el.textContent=message;el.style.color=error?'#b3261e':'#2e7d52'}};
+function initCloud(){
+  const cfg=window.KHARAIT_SUPABASE_CONFIG||{};
+  if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient){
+    cloudMessage('أضف رابط Supabase والمفتاح العام anon في supabase-config.js ثم أعد تحميل الصفحة.',true);
+    $('cloudLogin').disabled=$('cloudSignup').disabled=$('cloudSave').disabled=$('cloudRefresh').disabled=true;
+    return;
+  }
+  cloudClient=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  cloudClient.auth.getSession().then(({data,error})=>{if(error)authMessage(error.message,true);cloudUser=data.session?.user||null;cloudState()});
+  cloudClient.auth.onAuthStateChange((_event,session)=>{cloudUser=session?.user||null;cloudState()});
+}
+initCloud();
+function authMessage(message,error=false){
+  const el=$('authMessage');if(el){el.textContent=message;el.style.color=error?'#b3261e':'#2e7d52'}
+}
+function cloudState(){
+  if(!cloudClient)return;
+  document.body.classList.toggle('auth-ok',!!cloudUser);
+  if(cloudUser){
+    authMessage('Connexion réussie.');
+    cloudMessage('متصل بالحساب: '+cloudUser.email);
+    $('cloudEmail').value=cloudUser.email||'';$('cloudPassword').value='';
+    loadCloudMaps();
+  }else{
+    authMessage('Connectez-vous pour continuer.');
+    cloudMessage('غير مسجل الدخول. سجّل الدخول أو أنشئ حسابًا.');
+    $('cloudList').innerHTML='';
+  }
+}
+$('authLogin').onclick=async()=>{
+  if(!cloudClient)return authMessage('Configuration Supabase manquante.',true);
+  const email=$('authEmail').value.trim(),password=$('authPassword').value;
+  if(!email||!password)return authMessage('Saisissez votre e-mail et votre mot de passe.',true);
+  $('authLogin').disabled=true;
+  const {error}=await cloudClient.auth.signInWithPassword({email,password});
+  $('authLogin').disabled=false;
+  if(error)authMessage(error.message,true);
+};
+$('authSignup').onclick=async()=>{
+  if(!cloudClient)return authMessage('Configuration Supabase manquante.',true);
+  const email=$('authEmail').value.trim(),password=$('authPassword').value;
+  if(!email||password.length<8)return authMessage('E-mail requis et mot de passe de 8 caractères minimum.',true);
+  $('authSignup').disabled=true;
+  const {data,error}=await cloudClient.auth.signUp({email,password});
+  $('authSignup').disabled=false;
+  if(error)authMessage(error.message,true);
+  else if(!data.session)authMessage('Compte créé. Vérifiez votre e-mail, puis connectez-vous.');
+};
+
+$('bCloud').onclick=()=>{$('dCloud').showModal();if(!cloudClient)initCloud()};
+$('cloudLogin').onclick=async()=>{
+  if(!cloudClient)return;
+  const {error}=await cloudClient.auth.signInWithPassword({email:$('cloudEmail').value.trim(),password:$('cloudPassword').value});
+  cloudMessage(error?.message||'تم تسجيل الدخول.',!!error);
+};
+$('cloudSignup').onclick=async()=>{
+  if(!cloudClient)return;
+  const {data,error}=await cloudClient.auth.signUp({email:$('cloudEmail').value.trim(),password:$('cloudPassword').value});
+  cloudMessage(error?.message||(data.session?'تم إنشاء الحساب وتسجيل الدخول.':'تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيده.'),!!error);
+};
+$('cloudLogout').onclick=async()=>{if(!cloudClient)return;const {error}=await cloudClient.auth.signOut();cloudMessage(error?.message||'تم تسجيل الخروج.',!!error)};
+$('cloudSave').onclick=async()=>{
+  if(!cloudClient||!cloudUser)return cloudMessage('سجّل الدخول أولًا.',true);
+  const title=tx((DATA[0]?.['معلومات_الدرس']||{})['عنوان_الحصة'])||'Carte sans titre';
+  const {error}=await cloudClient.from('lesson_maps').insert({user_id:cloudUser.id,title,content:outLang(DATA.length===1?DATA[0]:DATA)});
+  cloudMessage(error?.message||'تم حفظ الخريطة في حسابك.',!!error);if(!error)loadCloudMaps();
+};
+async function loadCloudMaps(){
+  if(!cloudClient||!cloudUser)return;
+  const {data,error}=await cloudClient.from('lesson_maps').select('id,title,updated_at,content').order('updated_at',{ascending:false}).limit(30);
+  if(error){cloudMessage(error.message,true);return}
+  $('cloudList').innerHTML=data.length?data.map((item,i)=>'<div class="sl" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><div style="min-width:0"><b>'+esc(item.title)+'</b><br><small style="color:#6b7690">'+new Date(item.updated_at).toLocaleString()+'</small></div><button type="button" data-cloud-open="'+esc(item.id)+'">فتح</button></div>').join(''):'<p style="color:#6b7690">لا توجد خرائط محفوظة في السحابة بعد.</p>';
+}
+$('cloudRefresh').onclick=loadCloudMaps;
+$('cloudList').onclick=async e=>{
+  const b=e.target.closest('[data-cloud-open]');if(!b||!cloudClient||!cloudUser)return;
+  const {data,error}=await cloudClient.from('lesson_maps').select('content').eq('id',b.dataset.cloudOpen).single();
+  if(error){cloudMessage(error.message,true);return}
+  $('dCloud').close();render(canon(data.content));
+};
 
 /* ===== history of generated maps ===== */
 const HK='gm_hist';
