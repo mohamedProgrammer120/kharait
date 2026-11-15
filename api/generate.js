@@ -54,7 +54,7 @@ export default async function handler(req, res) {
     return json(res, 401, { error: "Connexion requise pour utiliser Kharait." });
   }
   try {
-    const authResponse = await fetch(`${supabaseUrl.replace(/\\/$/, "")}/auth/v1/user`, {
+    const authResponse = await fetch(`${supabaseUrl.endsWith("/") ? supabaseUrl.slice(0, -1) : supabaseUrl}/auth/v1/user`, {
       headers: { apikey: supabasePublicKey, Authorization: authorization },
     });
     if (!authResponse.ok) return json(res, 401, { error: "Session invalide ou expirée. Reconnectez-vous." });
