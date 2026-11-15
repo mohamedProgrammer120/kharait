@@ -273,6 +273,22 @@ async function callG(m,fs){
   }
   throw lastErr;
 }
+async function generate(){
+  const m=$('mdl').value,pasted=$('js').value.trim();
+  if(pasted){try{return render(canon(parseAny(pasted)))}catch(e){return st(tr('JSON غير صالح:')+' '+e.message,1)}}
+  if(files.length&&files.every(f=>/\.json$/i.test(f.name))){try{const out=[];for(const f of files)out.push(...[].concat(canon(parseAny(await f.text()))));if(!out.every(o=>o&&o['معلومات_الدرس']))throw new Error('معلومات_الدرس');files=[];showF();return render(out.slice(0,2))}catch(e){return st(tr('ملف JSON غير صالح:')+' '+e.message,1)}}
+if(!files.length&&!$('note').value.trim())return st('ارفع ملفًا واحدًا على الأقل',1);
+  if(files.filter(f=>!/\.(pptx|docx)$/i.test(f.name)).reduce((a,f)=>a+f.size,0)>18e6)return st('حجم الملفات يتجاوز 18 م.ب (حد الإرسال المباشر)',1);
+  const sep=files.length>=2&&$('sep').checked;if(sep&&files.length>2)return st('اختر ملفين فقط، أو ألغِ خيار «خريطة مستقلة لكل ملف»',1);
+  ls.set('gm_model',m);
+  $('bGo').disabled=true;st(tr('جارٍ التحليل بـ')+' '+m+(sep?' '+tr('(ملفان بالتوازي)'):'')+' '+tr('… قد يستغرق دقيقة'));
+  try{
+    const res=await Promise.allSettled((sep?files.map(f=>[f]):[files]).map(j=>callG(m,j)));
+    const ok=res.filter(r=>r.status==='fulfilled').map(r=>r.value),bad=res.filter(r=>r.status==='rejected').map(r=>r.reason.message);
+    if(!ok.length)throw new Error(bad[0]);
+    render(ok);pushHist(ok);if(bad.length)$('tag').textContent+=' — '+tr('تعذّر تحليل ملف:')+' '+bad[0];
+  }catch(e){st(tr('تعذّر التوليد:')+' '+e.message,1)}finally{$('bGo').disabled=false}
+}
 function parse(t){t=t.trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();const a=t.indexOf('{'),b=t.lastIndexOf('}');return JSON.parse(t.slice(a,b+1))}
 function parseAny(t){t=t.trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();return t[0]==='['?JSON.parse(t):parse(t)}
 $('bGo').onclick=generate;
