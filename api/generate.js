@@ -5,7 +5,7 @@ const ALLOWED_MODELS = new Set([
   "gemini-2.0-flash",
 ]);
 const WINDOW_MS = 60_000;
-const MAX_REQUEST_BYTES = 26 * 1024 * 1024;
+const MAX_REQUEST_BYTES = 4.2 * 1024 * 1024;
 const MAX_PARTS = 40;
 const hits = new Map();
 
@@ -32,7 +32,7 @@ function validPart(part) {
   const data = part.inlineData;
   return !!data &&
     typeof data.data === "string" &&
-    data.data.length <= 24 * 1024 * 1024 &&
+    data.data.length <= 3.2 * 1024 * 1024 &&
     ["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(data.mimeType);
 }
 
