@@ -1,49 +1,50 @@
 # Kharait — Générateur de cartes mentales de séance
 
-Application web statique HTML/CSS/JavaScript, bilingue arabe/français, pour analyser des documents de séance et créer des cartes mentales modifiables, imprimables et exportables.
+Application web HTML/CSS/JavaScript bilingue (arabe/français) : analyse des documents de séance, création de cartes mentales modifiables, impression et export PNG/PDF.
 
-## Déploiement Vercel
+## 1. Déployer sur Vercel et sécuriser Gemini
 
-Le dépôt contient une fonction serveur `/api/generate`. Le navigateur ne reçoit plus la clé Gemini.
+1. Importer le dépôt GitHub dans Vercel.
+2. Déployer la branche `feature/secure-backend-supabase` pour tester les modifications.
+3. Dans **Vercel → Project → Settings → Environment Variables**, ajouter `GEMINI_API_KEY` avec la clé créée dans Google AI Studio.
+4. Activer Production et Preview, enregistrer, puis redéployer.
+5. Tester une génération avec un petit document.
 
-1. Importer ce dépôt dans Vercel et déployer la branche `feature/secure-backend-supabase`.
-2. Dans **Vercel → Project → Settings → Environment Variables**, ajouter `GEMINI_API_KEY` avec une clé créée dans Google AI Studio.
-3. Sélectionner Production et Preview, enregistrer, puis redéployer.
-4. Ouvrir le site et tester une génération avec un petit PDF ou une image.
+La clé Gemini est utilisée uniquement par `api/generate.js`. Ne jamais la mettre dans le HTML, dans GitHub, ni dans une variable `NEXT_PUBLIC_*`.
 
-Ne jamais mettre la clé dans le HTML, dans GitHub, ni dans une variable `NEXT_PUBLIC_*`.
+La fonction vérifie le modèle, le contenu envoyé, la taille de requête, utilise une URL Google fixe, applique un délai d'attente et une limite basique de 8 requêtes/minute par IP et instance. Cette limite mémoire est best-effort : pour une application publique, remplace-la par un compteur partagé Upstash Redis ou équivalent. La taille totale des fichiers envoyés est limitée à 3 Mo pour rester dans les limites des fonctions Vercel.
 
-## Sécurité Gemini
-
-- La clé est lue uniquement depuis `process.env.GEMINI_API_KEY`.
-- Modèles autorisés par liste blanche.
-- Validation des parties texte/média et limite de taille.
-- Appels dirigés vers l'URL Google fixe, délai d'attente et réponses sans cache.
-- Limitation de débit en mémoire (8 requêtes/minute par instance). Les fonctions serverless peuvent multiplier les instances : pour une protection de production fiable, ajouter un compteur partagé Upstash Redis ou équivalent.
-
-## Stockage multi-appareils avec Supabase
-
-Le schéma de base est préparé dans `supabase/schema.sql`.
+## 2. Activer les comptes et la synchronisation multi-appareils
 
 1. Créer un projet Supabase.
-2. Ouvrir **SQL Editor**, coller et exécuter `supabase/schema.sql`.
-3. Activer Email/Password dans **Authentication → Providers**.
-4. Renseigner l'URL du projet et la clé publique anon dans `supabase-config.js` (ce fichier ne doit contenir que la clé publique anon, jamais la clé service_role).
+2. Dans **SQL Editor**, exécuter tout le contenu de `supabase/schema.sql`.
+3. Dans **Authentication → Providers**, activer Email.
+4. Dans **Project Settings → API**, copier l'URL du projet et la clé **anon/public**.
+5. Ouvrir `supabase-config.js` dans GitHub et remplacer les deux valeurs d'exemple :
+   - `url` : URL du projet Supabase.
+   - `anonKey` : clé publique anon.
+6. Dans **Authentication → URL Configuration**, ajouter le domaine Vercel dans les URL autorisées. Si la confirmation par e-mail est activée, configurer aussi le lien de redirection.
+7. Redéployer le site.
 
-La table et les politiques Row Level Security isolent les cartes par utilisateur.
+Ensuite, dans l'application, ouvrir **Compte / Synchronisation**, créer un compte ou se connecter, puis cliquer sur **Enregistrer la carte actuelle**. Les cartes enregistrées apparaîtront dans la liste et pourront être ouvertes depuis un autre appareil après connexion.
 
-**État de l'intégration :** la structure SQL est prête, mais l'écran de connexion et la synchronisation des cartes dans l'interface ne sont pas encore implémentés. Tant que cette étape n'est pas terminée, les cartes et l'historique restent stockés dans le navigateur. Ne considère donc pas encore la synchronisation multi-appareils comme active.
+**Sécurité :** le fichier de configuration ne contient que la clé publique anon. Ne jamais utiliser la clé `service_role` dans le navigateur. Les politiques Row Level Security de `supabase/schema.sql` garantissent que chaque utilisateur ne voit et ne modifie que ses propres cartes.
 
-## Fichiers
+## 3. Fichiers importants
 
-- `index.html` : interface et éditeur.
+- `index.html` : interface, éditeur, authentification et synchronisation Supabase.
 - `api/generate.js` : proxy serveur Gemini.
 - `supabase/schema.sql` : table, index, trigger et politiques RLS.
-- `.env.example` : variable secrète serveur.
-- `vercel.json` : en-têtes et configuration Vercel.
+- `supabase-config.js` : URL Supabase et clé publique anon (à configurer).
+- `.env.example` : variable secrète Gemini à ajouter dans Vercel.
+- `vercel.json` : en-têtes HTTP.
 
-## Limites actuelles
+## 4. Ce qui reste à vérifier avant mise en production
 
-- L'application reste une application HTML/JS statique, pas une migration Next.js.
-- Les exports PNG/PDF utilisent les bibliothèques CDN déjà présentes.
-- La limite anti-abus en mémoire est best-effort et doit être remplacée par un stockage partagé avant un usage public important.
+Je ne peux pas exécuter le déploiement Vercel ni tester l'authentification contre ton projet Supabase sans tes paramètres de projet. Après avoir ajouté les clés, teste :
+- génération Gemini ;
+- création de compte, confirmation e-mail et connexion ;
+- sauvegarde et ouverture d'une carte sur un deuxième appareil ;
+- impression A4 et export PDF/PNG.
+
+Le projet reste une application HTML/JS statique, sans migration Next.js. Les exports existants sont conservés.
