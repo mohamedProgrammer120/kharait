@@ -204,7 +204,7 @@ const MODEL_OPTIONS={gemini:['gemini-2.5-flash','gemini-2.5-flash-lite'],groq:['
 const PROVIDER_HINTS={gemini:'Google AI Studio : clé API personnelle.',groq:'Groq Console : clé API personnelle. Les modèles disponibles dépendent de ton compte.',openrouter:'OpenRouter : clé personnelle ou connexion OAuth sans copier-coller.',openai:'OpenAI Platform : clé API personnelle (facturation API séparée de ChatGPT Plus).',anthropic:'Anthropic Console : clé API personnelle.'};
 let aiKeyMemory='';
 const provider=()=>$('aiProvider').value;
-function refreshAiModels(){const p=provider(),list=MODEL_OPTIONS[p]||[];$('mdl').innerHTML=list.map((m,i)=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');$('providerHint').textContent=PROVIDER_HINTS[p]||'';$('openRouterConnect').hidden=p!=='openrouter';$('aiKey').placeholder=p==='gemini'?'AIza…':p==='groq'?'gsk_…':p==='openrouter'?'sk-or-v1-…':p==='openai'?'sk-proj-…':'sk-ant-…';}
+function refreshAiModels(){const p=provider(),list=MODEL_OPTIONS[p]||[];$('mdl').innerHTML=list.map((m,i)=>`<option value="${m}">${m}</option>`).join('');$('providerHint').textContent=PROVIDER_HINTS[p]||'';$('openRouterConnect').hidden=p!=='openrouter';$('aiKey').placeholder=p==='gemini'?'AIza…':p==='groq'?'gsk_…':p==='openrouter'?'sk-or-v1-…':p==='openai'?'sk-proj-…':'sk-ant-…';}
 $('aiProvider').onchange=()=>{aiKeyMemory='';$('aiKey').value='';refreshAiModels()};
 $('aiKey').oninput=()=>{aiKeyMemory=$('aiKey').value.trim()};
 $('clearAiKey').onclick=()=>{aiKeyMemory='';$('aiKey').value='';$('aiKey').focus()};
@@ -224,7 +224,7 @@ async function finishOpenRouterOAuth(){
   const verifier=sessionStorage.getItem('kharait_or_verifier');sessionStorage.removeItem('kharait_or_verifier');
   if(!verifier){authMessage('OpenRouter OAuth : vérificateur PKCE absent. Recommencez la connexion.',true);return}
   try{const r=await fetch('https://openrouter.ai/api/v1/auth/keys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,code_verifier:verifier,code_challenge_method:'S256'})});const j=await r.json();if(!r.ok||!j.key)throw new Error(j.error?.message||'Échange OAuth impossible');
-    $('aiProvider').value='openrouter';refreshAiModels();aiKeyMemory=j.key;$('aiKey').value=j.key;history.replaceState({},document.title,location.pathname);st('OpenRouter connecté. La clé reste uniquement en mémoire dans cet onglet.');
+    $('aiProvider').value='openrouter';refreshAiModels();aiKeyMemory=j.key;$('aiKey').value=j.key;history.replaceState({},document.title,location.pathname);authMessage('OpenRouter connecté. La clé reste uniquement en mémoire dans cet onglet.');
   }catch(e){authMessage('Erreur OpenRouter : '+e.message,true);}
 }
 finishOpenRouterOAuth();
