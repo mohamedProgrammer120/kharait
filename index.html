@@ -287,8 +287,6 @@ function applyLang(){const fr=LANG==='fr',h=document.documentElement;h.lang=LANG
   render(DATA);setLx(document.body.classList.contains('nolx'))}
 $('bLang').onclick=()=>{LANG=LANG==='fr'?'ar':'fr';ls.set('gm_lang',LANG);applyLang()};
 
-function fillModels(list){const cur=ls.get('gm_model')||list[0];$('mdl').innerHTML=list.map(m=>`<option${m===cur?' selected':''}>${m}</option>`).join('')}
-fillModels(MODELS);
 $('bOpen').onclick=()=>$('dlg').showModal();$('bX').onclick=()=>$('dlg').close();
 const showF=()=>{$('sepw').hidden=files.length<2;$('fl').innerHTML=files.map((f,i)=>`<span class="chip">${esc(f.name)} · ${(f.size/1048576).toFixed(1)} ${tr('م.ب')} <u data-i="${i}">✕</u></span>`).join('')};
 $('fl').onclick=e=>{const i=e.target.dataset.i;if(i!=null){files.splice(+i,1);showF()}};
@@ -359,7 +357,6 @@ async function generate(){
 if(!files.length&&!$('note').value.trim())return st('ارفع ملفًا واحدًا على الأقل',1);
   if(files.filter(f=>!/\.(pptx|docx)$/i.test(f.name)).reduce((a,f)=>a+f.size,0)>3e6)return st('حجم الملفات يتجاوز 3 م.ب (حد الإرسال الآمن)',1);
   const sep=files.length>=2&&$('sep').checked;if(sep&&files.length>2)return st('اختر ملفين فقط، أو ألغِ خيار «خريطة مستقلة لكل ملف»',1);
-  ls.set('gm_model',m);
   $('bGo').disabled=true;st(tr('جارٍ التحليل بـ')+' '+provider().toUpperCase()+' / '+m+(sep?' '+tr('(ملفان بالتوازي)'):'')+' '+tr('… قد يستغرق دقيقة'));
   try{
     const res=await Promise.allSettled((sep?files.map(f=>[f]):[files]).map(j=>callG(m,j)));
