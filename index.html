@@ -475,7 +475,6 @@ $('bPng').onclick=async()=>{
 
 /* ===== optional Supabase account and cross-device map storage ===== */
 let cloudClient=null,cloudUser=null;
-initCloud();
 const cloudMessage=(message,error=false)=>{const el=$('cloudStatus');if(el){el.textContent=message;el.style.color=error?'#b3261e':'#2e7d52'}};
 function initCloud(){
   const cfg=window.KHARAIT_SUPABASE_CONFIG||{};
@@ -488,6 +487,7 @@ function initCloud(){
   cloudClient.auth.getSession().then(({data,error})=>{if(error)authMessage(error.message,true);cloudUser=data.session?.user||null;cloudState()});
   cloudClient.auth.onAuthStateChange((_event,session)=>{cloudUser=session?.user||null;cloudState()});
 }
+initCloud();
 function authMessage(message,error=false){
   const el=$('authMessage');if(el){el.textContent=message;el.style.color=error?'#b3261e':'#2e7d52'}
 }
