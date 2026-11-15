@@ -2,7 +2,6 @@
 const ALLOWED_MODELS = new Set([
   "gemini-2.5-flash",
   "gemini-2.5-flash-lite",
-  "gemini-2.0-flash",
 ]);
 const WINDOW_MS = 60_000;
 const MAX_REQUEST_BYTES = 4.2 * 1024 * 1024;
