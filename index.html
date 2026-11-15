@@ -106,9 +106,34 @@ html[dir=ltr] .st .d{margin-right:0;margin-left:auto}html[dir=ltr] .st ul{paddin
 svg.lk{z-index:0;position:absolute;inset:0;pointer-events:none;width:100%;height:100%}
 [contenteditable]:focus{outline:2px dashed #e9b949;outline-offset:2px}
 @media print{[data-ph]:empty:before{content:''}.ctl{display:none!important}.box.emp{display:none}.d:has([data-ph]:empty){display:none}header,#tag,#stage>br,dialog{display:none!important}html,body{background:#fff;height:auto;overflow:visible}#stage{padding:0!important;overflow:visible!important}.mp{box-shadow:none;border-radius:0;break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+/* Mandatory sign-in gate: hide the application until Supabase confirms a session. */
+#authGate{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#101d38,#23477e);font-family:Segoe UI,Tahoma,Arial,sans-serif;direction:ltr}
+body:not(.auth-ok) #authGate{display:flex}
+body:not(.auth-ok)>:not(#authGate):not(script){visibility:hidden;pointer-events:none}
+.auth-card{width:min(420px,100%);padding:30px;border-radius:22px;background:#fff;box-shadow:0 24px 80px #0005;display:grid;gap:12px;color:#1d2a44}
+.auth-logo{font-size:38px;text-align:center}.auth-card h1{font-size:22px;text-align:center;margin:0}.auth-card p{font-size:13px;text-align:center;color:#6b7690;margin:0 0 8px;line-height:1.6}
+.auth-card label{font-size:13px;font-weight:700}.auth-card input{width:100%;padding:12px;border:1px solid #ccd5e5;border-radius:10px;background:#f8faff;color:#1d2a44;direction:ltr}
+.auth-card button{padding:12px}.auth-card .auth-secondary{background:#e8edf6;color:#1d2a44}
+#authMessage{min-height:20px;margin-top:4px}
+
 </style>
 </head>
 <body>
+<div id="authGate" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+  <div class="auth-card">
+    <div class="auth-logo">🧠</div>
+    <h1 id="authTitle">Kharait — Connexion sécurisée</h1>
+    <p>Connectez-vous pour accéder à vos cartes mentales.</p>
+    <label for="authEmail">Adresse e-mail</label>
+    <input id="authEmail" type="email" autocomplete="username" placeholder="vous@exemple.com" dir="ltr">
+    <label for="authPassword">Mot de passe</label>
+    <input id="authPassword" type="password" autocomplete="current-password" placeholder="••••••••" dir="ltr">
+    <button id="authLogin" type="button">Se connecter</button>
+    <button id="authSignup" type="button" class="auth-secondary">Créer mon compte</button>
+    <p id="authMessage" aria-live="polite">Configurez Supabase pour activer l'accès sécurisé.</p>
+  </div>
+</div>
 <header>
   <h1>🧠 مولّد الخرائط الذهنية للحصة</h1>
   <nav id="bar">
@@ -275,7 +300,10 @@ async function callG(m,fs){
   let lastErr;
   for(let a=0;a<3;a++){
     try{
-      const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m,parts})});
+      const {data:sessionData}=await cloudClient.auth.getSession();
+      const accessToken=sessionData.session?.access_token;
+      if(!accessToken)throw new Error('Connectez-vous pour utiliser Kharait.');
+      const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken},body:JSON.stringify({model:m,parts})});
       const j=await r.json().catch(()=>({}));
       if(!r.ok){const e=new Error(j.error||('HTTP '+r.status));e.retry=[429,500,502,503,504].includes(r.status);throw e}
       const t=j.text||'';
@@ -447,6 +475,7 @@ $('bPng').onclick=async()=>{
 
 /* ===== optional Supabase account and cross-device map storage ===== */
 let cloudClient=null,cloudUser=null;
+initCloud();
 const cloudMessage=(message,error=false)=>{const el=$('cloudStatus');if(el){el.textContent=message;el.style.color=error?'#b3261e':'#2e7d52'}};
 function initCloud(){
   const cfg=window.KHARAIT_SUPABASE_CONFIG||{};
@@ -455,15 +484,47 @@ function initCloud(){
     $('cloudLogin').disabled=$('cloudSignup').disabled=$('cloudSave').disabled=$('cloudRefresh').disabled=true;
     return;
   }
-  cloudClient=window.supabase.createClient(cfg.url,cfg.anonKey);
-  cloudClient.auth.getSession().then(({data})=>{cloudUser=data.session?.user||null;cloudState()});
+  cloudClient=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  cloudClient.auth.getSession().then(({data,error})=>{if(error)authMessage(error.message,true);cloudUser=data.session?.user||null;cloudState()});
   cloudClient.auth.onAuthStateChange((_event,session)=>{cloudUser=session?.user||null;cloudState()});
+}
+function authMessage(message,error=false){
+  const el=$('authMessage');if(el){el.textContent=message;el.style.color=error?'#b3261e':'#2e7d52'}
 }
 function cloudState(){
   if(!cloudClient)return;
-  if(cloudUser){cloudMessage('متصل بالحساب: '+cloudUser.email);$('cloudEmail').value=cloudUser.email||'';$('cloudPassword').value='';loadCloudMaps()}
-  else{cloudMessage('غير مسجل الدخول. سجّل الدخول أو أنشئ حسابًا.');$('cloudList').innerHTML=''}
+  document.body.classList.toggle('auth-ok',!!cloudUser);
+  if(cloudUser){
+    authMessage('Connexion réussie.');
+    cloudMessage('متصل بالحساب: '+cloudUser.email);
+    $('cloudEmail').value=cloudUser.email||'';$('cloudPassword').value='';
+    loadCloudMaps();
+  }else{
+    authMessage('Connectez-vous pour continuer.');
+    cloudMessage('غير مسجل الدخول. سجّل الدخول أو أنشئ حسابًا.');
+    $('cloudList').innerHTML='';
+  }
 }
+$('authLogin').onclick=async()=>{
+  if(!cloudClient)return authMessage('Configuration Supabase manquante.',true);
+  const email=$('authEmail').value.trim(),password=$('authPassword').value;
+  if(!email||!password)return authMessage('Saisissez votre e-mail et votre mot de passe.',true);
+  $('authLogin').disabled=true;
+  const {error}=await cloudClient.auth.signInWithPassword({email,password});
+  $('authLogin').disabled=false;
+  if(error)authMessage(error.message,true);
+};
+$('authSignup').onclick=async()=>{
+  if(!cloudClient)return authMessage('Configuration Supabase manquante.',true);
+  const email=$('authEmail').value.trim(),password=$('authPassword').value;
+  if(!email||password.length<8)return authMessage('E-mail requis et mot de passe de 8 caractères minimum.',true);
+  $('authSignup').disabled=true;
+  const {data,error}=await cloudClient.auth.signUp({email,password});
+  $('authSignup').disabled=false;
+  if(error)authMessage(error.message,true);
+  else if(!data.session)authMessage('Compte créé. Vérifiez votre e-mail, puis connectez-vous.');
+};
+
 $('bCloud').onclick=()=>{$('dCloud').showModal();if(!cloudClient)initCloud()};
 $('cloudLogin').onclick=async()=>{
   if(!cloudClient)return;
