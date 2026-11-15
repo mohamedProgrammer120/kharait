@@ -61,10 +61,11 @@ Les cartes peuvent être sauvegardées dans Supabase. Les politiques Row Level S
 
 ## 6. Déploiement et tests
 
-1. Déployer la branche `feature/secure-backend-supabase`.
-2. Configurer les variables Supabase dans Vercel.
-3. Compléter `supabase-config.js`, exécuter le SQL et créer un compte Kharait.
-4. Tester chaque fournisseur avec une clé de test personnelle, d'abord avec un prompt court.
-5. Tester OAuth OpenRouter et vérifier qu'une actualisation de page efface la clé de l'état en mémoire.
+1. Importer le dépôt dans Vercel (branche `main`, preset « Other », sans commande de build).
+2. Ajouter dans Vercel les variables `SUPABASE_URL` et `SUPABASE_PUBLISHABLE_KEY` (Settings → Environment Variables), puis redéployer.
+3. Dans Supabase : exécuter `supabase/schema.sql`, activer Email (Authentication → Providers) et ajouter `https://kharait.vercel.app` dans Authentication → URL Configuration.
+4. Créer un compte, coller sa propre clé API et générer une carte avec un PDF léger (≤ 3 Mo).
 
-Le code est préparé sur la branche de travail, mais le déploiement Vercel et les appels réels aux cinq fournisseurs doivent encore être testés avec les comptes de leurs utilisateurs.
+**Limites :** une requête vers l'API ne doit pas dépasser ~4 Mo (limite Vercel). Les PPTX/DOCX sont lus dans le navigateur (texte, notes, SmartArt) : seul le texte et au plus 8 images compressées sont envoyés, quelle que soit la taille du fichier. Le nom de fichier de type `NE_AR_N3_P2_SEM3_S6` fournit niveau, phase, semaine et séance quand le document ne les contient pas.
+
+**Testé :** la passerelle `/api/ai-generate` (authentification, refus des PDF pour OpenAI/Groq/OpenRouter, limite de débit, clé en en-tête uniquement) avec des fournisseurs simulés. Les appels réels aux cinq fournisseurs restent à valider avec les clés de leurs utilisateurs.

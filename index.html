@@ -325,9 +325,15 @@ const b64=f=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.re
 const LVL={p:['الابتدائي المغربي',"de l'école primaire marocaine"],c:['الإعدادي المغربي','du collège marocain'],h:['الثانوي التأهيلي المغربي','du lycée marocain']};
 const lvlFix=t=>{const l=$('lvl').value;if(l==='p')return t;return t.replace(LVL.p[0],LVL[l][0]).replace(LVL.p[1],LVL[l][1])};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function fileHint(name){const m=name.match(/(?:^|[_\-\s])N(\d)(?:[_\-\s]P(\d))?(?:[_\-\s]SEM(\d+))?(?:[_\-\s]S(\d+))?/i);if(!m)return'';
+  const o=[];if(LANG==='fr'){if(m[1])o.push('niveau '+m[1]);if(m[2])o.push('phase '+m[2]);if(m[3])o.push('semaine '+m[3]);if(m[4])o.push('séance/jour '+m[4]);
+    return o.length>1?'[Indice tiré du nom du fichier "'+name+'" : '+o.join(', ')+'. Utilise-le seulement si le document ne le précise pas.]':''}
+  if(m[1])o.push('المستوى '+m[1]);if(m[2])o.push('المرحلة '+m[2]);if(m[3])o.push('الأسبوع '+m[3]);if(m[4])o.push('الحصة/اليوم '+m[4]);
+  return o.length>1?'[مؤشر من اسم الملف "'+name+'": '+o.join('، ')+'. استعمله فقط إن لم يذكره المستند.]':''}
 async function callG(m,fs){
   const parts=[{text:lvlFix(LANG==='fr'?PROMPT_FR:PROMPT_AR)+($('note').value.trim()?(LANG==='fr'?"\nRemarques de l'utilisateur : ":'\nملاحظات المستخدم: ')+$('note').value.trim():'')}];
   for(const f of fs){
+    const hint=fileHint(f.name);if(hint)parts.push({text:hint});
     if(/\.(pptx|docx)$/i.test(f.name)){parts.push(...await officeParts(f));continue}
     if(/^text\/|json$/.test(f.type)||/\.(txt|md|json)$/i.test(f.name))parts.push({text:'--- '+f.name+' ---\n'+await f.text()});
     else parts.push({inlineData:{mimeType:f.type||(/\.pdf$/i.test(f.name)?'application/pdf':'image/jpeg'),data:await b64(f)}});
@@ -634,6 +640,7 @@ const relsOf=async(z,path)=>{const f=z.file(path.replace(/([^/]+)$/,'_rels/$1.re
   return [...x.matchAll(/<Relationship\b[^>]*>/g)].map(m=>{const a=n=>(m[0].match(new RegExp('\\b'+n+'="([^"]*)"'))||[])[1]||'';return{id:a('Id'),type:a('Type'),target:a('Target')}})};
 const resolvePath=(base,t)=>{if(t[0]==='/')return t.slice(1);const p=base.replace(/[^/]*$/,'').split('/').filter(Boolean);for(const s of t.split('/')){if(s==='..')p.pop();else if(s&&s!=='.')p.push(s)}return p.join('/')};
 const MIME={png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp'};
+async function shrinkImg(blob,max=900){const bm=await createImageBitmap(blob),k=Math.min(1,max/Math.max(bm.width,bm.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(bm.width*k));c.height=Math.max(1,Math.round(bm.height*k));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bm,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.65).split(',')[1]}
 async function officeParts(f){
   await loadJs('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',()=>window.JSZip);
   const z=await JSZip.loadAsync(f),fr=LANG==='fr',noText=()=>new Error(tr('لا نص قابل للقراءة في هذا الملف. إن كان صورًا فحوّله إلى PDF:')+' '+f.name);
@@ -645,18 +652,26 @@ async function officeParts(f){
     ord=[...pr.matchAll(/<p:sldId\b[^>]*\br:id="([^"]+)"/g)].map(m=>mp[m[1]]).filter(n=>n&&z.file(n));
     if(ord.length)slides=ord.concat(slides.filter(n=>!ord.includes(n)))}catch(_){}
   let text='--- '+f.name+' ---',imgs=[],bytes=0,chars=0;
+  const relsAll=await Promise.all(slides.map(sp=>relsOf(z,sp))),use={};
+  relsAll.forEach((rl,i)=>new Set(rl.filter(r=>/\/image$/.test(r.type)).map(r=>resolvePath(slides[i],r.target))).forEach(ip=>use[ip]=(use[ip]||0)+1));
+  const IMG_BUDGET=1.9e6,IMG_MAX=8;           /* server accepts ~4.2 MB per request: stay well under */
   for(let i=0;i<slides.length;i++){
-    const sx=await z.file(slides[i]).async('string'),rels=await relsOf(z,slides[i]),L=paraLines(sx,'a'),NT=[];
+    const sx=await z.file(slides[i]).async('string'),rels=relsAll[i],L=paraLines(sx,'a'),NT=[];
     for(const r of rels){
       if(/diagramData$/.test(r.type)){const dp=resolvePath(slides[i],r.target);if(z.file(dp))L.push(...paraLines(await z.file(dp).async('string'),'a').filter(t=>!L.includes(t)))}
       if(/notesSlide$/.test(r.type)){const np=resolvePath(slides[i],r.target);if(z.file(np))NT.push(...paraLines(await z.file(np).async('string'),'a').filter(t=>!/^\d+$/.test(t)))}}
     const len=L.join('').length;chars+=len;
     text+='\n\n### '+(fr?'Diapositive ':'شريحة ')+(i+1)+(/<p:sld\b[^>]*\bshow="0"/.test(sx)?(fr?' (masquée)':' (مخفية)'):'')+'\n'+L.join('\n')+(NT.length?'\n['+(fr?'Notes':'ملاحظات')+'] '+NT.join(' '):'');
-    if(len<120&&imgs.length<16){let k=0;for(const r of rels.filter(r=>/\/image$/.test(r.type))){
-      const ip=resolvePath(slides[i],r.target),ext=(ip.split('.').pop()||'').toLowerCase();if(!MIME[ext]||!z.file(ip)||k>=2||imgs.length>=16)continue;
-      const d=await z.file(ip).async('base64'),sz=d.length*.75;if(sz<4000||sz>3e6||bytes+sz>9e6)continue;
-      bytes+=sz;k++;imgs.push({text:'['+(fr?'Image de la diapositive ':'صورة من الشريحة ')+(i+1)+']'},{inlineData:{mimeType:MIME[ext],data:d}})}}
+    /* near-empty slide: send ONE content image (skip icons/backgrounds reused on 3+ slides), compressed */
+    if(len<40&&imgs.length<IMG_MAX*2&&bytes<IMG_BUDGET){
+      for(const r of rels.filter(r=>/\/image$/.test(r.type))){
+        const ip=resolvePath(slides[i],r.target),ext=(ip.split('.').pop()||'').toLowerCase();
+        if(!MIME[ext]||!z.file(ip)||use[ip]>2)continue;
+        try{const blob=new Blob([await z.file(ip).async('uint8array')],{type:MIME[ext]});if(blob.size<8000)continue;
+          const d=await shrinkImg(blob);if(!d||bytes+d.length>IMG_BUDGET)continue;
+          bytes+=d.length;imgs.push({text:'['+(fr?'Image de la diapositive ':'صورة من الشريحة ')+(i+1)+']'},{inlineData:{mimeType:'image/jpeg',data:d}});break}catch(_){}}}
   }
+  if(text.length>170000)text=text.slice(0,170000)+'\n['+(fr?'texte tronqué':'تم اقتطاع النص')+']';
   if(chars<40&&!imgs.length)throw noText();
   if(imgs.length)text+='\n\n'+(fr?"Les images ci-dessous proviennent de diapositives presque sans texte : lis leur contenu (durées, étapes, consignes).":'الصور التالية من شرائح قليلة النص؛ اقرأ ما فيها (المدد والمراحل والتعليمات).');
   return [{text},...imgs]}
