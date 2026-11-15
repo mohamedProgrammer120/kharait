@@ -83,7 +83,7 @@ html[dir=ltr] .st .d{margin-right:0;margin-left:auto}html[dir=ltr] .st ul{paddin
 #map{position:relative;width:1080px;direction:rtl;display:flex;flex-direction:column;gap:20px}
 .mp{position:relative;padding:20px 24px 26px;background:#fff;direction:rtl;display:grid;grid-template-columns:1fr 330px 1fr;gap:0 44px;border-radius:16px;box-shadow:0 6px 30px #1d2a4422}
 .ttl{grid-column:1/-1;background:linear-gradient(90deg,#14264a,#1d3b6e);color:#fff;text-align:center;border-radius:14px;padding:12px 18px;font-size:22px;font-weight:700;margin-bottom:12px}
-.info{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px}
+.info{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px}
 .ic{border:2px solid var(--k);border-radius:12px;padding:6px 10px 7px;text-align:center;background:#fff;box-shadow:0 2px 0 var(--k)}
 .ic small{display:block;color:var(--k);font-size:11px;font-weight:700;border-bottom:1px dashed var(--k);padding-bottom:2px;margin-bottom:3px}
 .ic span{font-size:14px;font-weight:700;line-height:1.5;display:block}
@@ -94,7 +94,7 @@ html[dir=ltr] .st .d{margin-right:0;margin-left:auto}html[dir=ltr] .st ul{paddin
 .card .h{background:var(--c);color:#fff;padding:7px 12px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
 .card .h .n{background:#fff;color:var(--c);border-radius:50%;width:24px;height:24px;display:grid;place-items:center;font-size:13px;flex:none}
 .card .h .d{margin-right:auto;background:#ffffff33;border-radius:10px;padding:0 9px;font-size:12px;white-space:nowrap}
-.card .b{padding:8px 12px 10px}.a{margin-top:6px}.a b{color:var(--c);display:block}
+.card .b{padding:8px 12px 10px}.a{margin-top:6px}.a b{color:var(--c);display:block}.a b small.dm{font-weight:400;opacity:.85;font-size:11px;color:var(--mut)}
 .a ul{margin:2px 0 0;padding:0;list-style:none}.a li{padding-right:16px;position:relative}.a li:before{content:"";position:absolute;right:2px;top:.62em;width:6px;height:6px;border:1.5px solid var(--c);border-radius:1px}
 .oval{margin:0 auto;width:310px;min-height:190px;border-radius:50%;background:#1d3557;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 34px;border:6px solid #e9b949}
 .oval b{font-size:21px;line-height:1.4}.oval small{opacity:.85;margin-top:8px;font-size:12px;line-height:1.6}
@@ -176,7 +176,7 @@ const FR={
 'التثبيت يحتاج رابطًا https':"L'installation nécessite un lien https",'المتصفحات لا تثبّت التطبيقات من ملف محلي. ارفع ملفات التطبيق (index.html وmanifest.webmanifest وsw.js والأيقونتين) إلى أي استضافة ثابتة مجانية مثل Netlify Drop أو GitHub Pages أو Cloudflare Pages، ثم افتح الرابط واضغط «تثبيت التطبيق» من الهاتف أو الحاسوب.':"Les navigateurs n'installent pas une appli depuis un fichier local. Déposez les fichiers (index.html, manifest.webmanifest, sw.js et les deux icônes) sur un hébergement statique gratuit (Netlify Drop, GitHub Pages ou Cloudflare Pages), ouvrez le lien puis cliquez sur « Installer l'appli » depuis le téléphone ou l'ordinateur.",
 'التثبيت على آيفون / آيباد':"Installation sur iPhone / iPad",'في Safari: اضغط زر <b>المشاركة</b> ⬆ ثم <b>إضافة إلى الشاشة الرئيسية</b>.':"Dans Safari : touchez <b>Partager</b> ⬆ puis <b>Sur l'écran d'accueil</b>.",'التثبيت من قائمة المتصفح':'Installation depuis le menu du navigateur','<b>أندرويد (Chrome):</b> القائمة ⋮ ثم «تثبيت التطبيق».<br><b>ويندوز (Chrome / Edge):</b> أيقونة التثبيت في شريط العنوان، أو القائمة ← «تثبيت».<br>إن لم يظهر الخيار فتأكد أنك تفتح الرابط عبر https.':"<b>Android (Chrome) :</b> menu ⋮ puis « Installer l'application ».<br><b>Windows (Chrome / Edge) :</b> icône d'installation dans la barre d'adresse, ou menu → « Installer ».<br>Si l'option n'apparaît pas, vérifiez que le lien est en https.",
 'تعذّر تحميل مكتبة التصدير (تحقق من الاتصال)':"Impossible de charger la bibliothèque d'export (vérifiez la connexion)"};
-Object.assign(FR,{'PDF · PPTX · DOCX · صور · نص · JSON':'PDF · PPTX · DOCX · images · texte · JSON','لا نص قابل للقراءة في هذا الملف. إن كان صورًا فحوّله إلى PDF:':'Aucun texte lisible dans ce fichier. S\'il ne contient que des images, convertissez-le en PDF :','ملف JSON غير صالح:':'Fichier JSON invalide :','تصدير PDF':'Export PDF','السجل':'Historique','سجل الخرائط':'Historique des cartes','آخر 10 خرائط مولَّدة في هذا المتصفح':'10 dernières cartes générées dans ce navigateur','مسح السجل':"Effacer l'historique",'المستوى الدراسي':'Cycle scolaire','ابتدائي':'Primaire','إعدادي':'Collège','ثانوي':'Lycée','لا يوجد سجل بعد':"Aucun historique pour l'instant",'فتح':'Ouvrir','حذف':'Supprimer','مسح كل السجل؟':"Effacer tout l'historique ?",'جارٍ إنشاء PDF…':'Création du PDF…','إعادة المحاولة تلقائيًا…':'Nouvelle tentative automatique…','⚠ يُحفظ المفتاح كنص عادي في هذا المتصفح. لا تفعّل التذكّر على جهاز مشترك، ويُستحسن تقييده بنطاق موقعك (HTTP referrer) من لوحة Google AI Studio.':"⚠ La clé est enregistrée en clair dans ce navigateur. Ne l'activez pas sur un appareil partagé et limitez-la à votre domaine (HTTP referrer) dans Google AI Studio."});
+Object.assign(FR,{'اليوم':'Jour','مجال':'domaine','PDF · PPTX · DOCX · صور · نص · JSON':'PDF · PPTX · DOCX · images · texte · JSON','لا نص قابل للقراءة في هذا الملف. إن كان صورًا فحوّله إلى PDF:':'Aucun texte lisible dans ce fichier. S\'il ne contient que des images, convertissez-le en PDF :','ملف JSON غير صالح:':'Fichier JSON invalide :','تصدير PDF':'Export PDF','السجل':'Historique','سجل الخرائط':'Historique des cartes','آخر 10 خرائط مولَّدة في هذا المتصفح':'10 dernières cartes générées dans ce navigateur','مسح السجل':"Effacer l'historique",'المستوى الدراسي':'Cycle scolaire','ابتدائي':'Primaire','إعدادي':'Collège','ثانوي':'Lycée','لا يوجد سجل بعد':"Aucun historique pour l'instant",'فتح':'Ouvrir','حذف':'Supprimer','مسح كل السجل؟':"Effacer tout l'historique ?",'جارٍ إنشاء PDF…':'Création du PDF…','إعادة المحاولة تلقائيًا…':'Nouvelle tentative automatique…','⚠ يُحفظ المفتاح كنص عادي في هذا المتصفح. لا تفعّل التذكّر على جهاز مشترك، ويُستحسن تقييده بنطاق موقعك (HTTP referrer) من لوحة Google AI Studio.':"⚠ La clé est enregistrée en clair dans ce navigateur. Ne l'activez pas sur un appareil partagé et limitez-la à votre domaine (HTTP referrer) dans Google AI Studio."});
 const tr=s=>LANG==='fr'&&FR[s]!=null?FR[s]:s;
 const FRK={informations_lecon:'معلومات_الدرس',structure_seance:'هيكلة_الحصة',objectifs_seance:'أهداف_الحصة',moyens_didactiques:'الوسائل_الديداكتيكية',fiche_detaillee:'جذاذة_مفصلة',lexique_seance:'معلومات_إضافية',matiere:'المادة',niveau:'المستوى',periode:'الفترة',unite:'الوحدة',semaine:'الأسبوع',seance:'الحصة',jour:'اليوم',titre_seance:'عنوان_الحصة',duree_totale:'المدة_الإجمالية',donnees_supplementaires:'بيانات_إضافية',nom_fichier:'اسم_الملف',source_information:'مصدر_المعلومة',etape:'المرحلة',duree:'المدة',sous_activites:'الأنشطة_الفرعية',activite:'النشاط',formule_introductive:'الصيغة_الافتتاحية',objectifs:'الأهداف',moyens:'الوسائل',moyen:'الوسيلة',usage:'الاستعمال',activites:'الأنشطة',titre_activite:'عنوان_النشاط',deroulement:'سير_النشاط',support_activite:'مجال_النشاط',mots_outils:'كلمات_بصرية',strategies:'استراتيجيات',regles:'قواعد',informations_complementaires:'معلومات_إضافية'};
 const ARK=Object.fromEntries(Object.entries(FRK).map(([a,b])=>[b,a]));
@@ -234,6 +234,7 @@ $('bRef').onclick=async()=>{const k=$('key').value.trim();if(!k)return st('أد�
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const tx=x=>x==null?'':typeof x==='string'||typeof x==='number'?String(x):Array.isArray(x)?x.map(tx).join('، '):Object.values(x).map(tx).filter(Boolean).join(' — ');
 const arr=x=>Array.isArray(x)?x:x?[x]:[];
+const nm=s=>/غير مذكور|non mentionn|not mentioned/i.test(s||'')?'':s;
 
 const PROMPT_AR=`أنت محلّل تربوي متخصّص في جذاذات التعليم الصريح بالابتدائي المغربي. المرفقات خاصة بحصة واحدة. أخرج **كائن JSON واحدًا صالحًا فقط** (دون أي نص أو علامات \`\`\` خارجه) بستة مفاتيح رئيسية بهذا الترتيب، ولا تضف غيرها:
 {"معلومات_الدرس":{},"هيكلة_الحصة":[],"أهداف_الحصة":{},"الوسائل_الديداكتيكية":{},"جذاذة_مفصلة":[],"معلومات_إضافية":{}}
@@ -262,7 +263,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function callG(k,m,fs){
   const parts=[{text:lvlFix(LANG==='fr'?PROMPT_FR:PROMPT_AR)+($('note').value.trim()?(LANG==='fr'?"\nRemarques de l'utilisateur : ":'\nملاحظات المستخدم: ')+$('note').value.trim():'')}];
   for(const f of fs){
-    if(/\.(pptx|docx)$/i.test(f.name)){parts.push({text:'--- '+f.name+' ---\n'+await officeText(f)});continue}
+    if(/\.(pptx|docx)$/i.test(f.name)){parts.push(...await officeParts(f));continue}
     if(/^text\/|json$/.test(f.type)||/\.(txt|md|json)$/i.test(f.name))parts.push({text:'--- '+f.name+' ---\n'+await f.text()});
     else parts.push({inlineData:{mimeType:f.type||(/\.pdf$/i.test(f.name)?'application/pdf':'image/jpeg'),data:await b64(f)}});
   }
@@ -328,13 +329,13 @@ function mapHtml(d){
   const ed=(p,v,ph)=>`<span contenteditable data-p="${p}" data-ph="${tr(ph||'')}">${esc(v)}</span>`;
   const li=(p,v,ph)=>`<li contenteditable data-p="${p}" data-li="1" data-ph="${tr(ph)}">${esc(v)}</li>`;
   const title=tx(I['عنوان_الحصة']);
-  const IK=[['المادة','المادة','#2f6fd0'],['المستوى','المستوى','#2e9a5b'],['الوحدة','الوحدة','#e08a1e'],['الأسبوع','الأسبوع','#7b3fb0'],['الحصة','الحصة','#d6336c'],['المدة','المدة_الإجمالية','#12877f']];
-  const meta=IK.map(([l,k,c])=>`<div class="ic" style="--k:${c}"><small>${lb('i_'+l,tr(l))}</small><span contenteditable data-p="معلومات_الدرس.${k}" data-ph="—">${esc(tx(I[k])||(k==='المدة_الإجمالية'?tx(I['المدة']):''))}</span></div>`).join('');
-  const card=(s,i,x)=>{const c=COL[i%COL.length],P=`جذاذة_مفصلة.${i}`;return `<div class="card" style="--c:${c};${x||''}"><div class="h"><span class="n">${i+1}</span>${ed(P+'.المرحلة',tx(s['المرحلة']),'اسم المرحلة')}<span class="d">${ed(P+'.المدة',tx(s['المدة']),'مدة')}</span><button class="ctl x" data-act="up" data-i="${i}" title="▲">▲</button><button class="ctl x" data-act="down" data-i="${i}" title="▼">▼</button><button class="ctl x" data-act="delStage" data-i="${i}" title="${tr('حذف المرحلة')}">✕</button></div><div class="b">${arr(s['الأنشطة']).map((a,j)=>`<div class="a"><button class="ctl x" data-act="delAct" data-i="${i}" data-j="${j}" title="${tr('حذف النشاط')}">✕</button><b>${ed(`${P}.الأنشطة.${j}.عنوان_النشاط`,tx(a['عنوان_النشاط']),'عنوان النشاط')}</b><ul>${arr(a['سير_النشاط']).map((x,k)=>li(`${P}.الأنشطة.${j}.سير_النشاط.${k}`,x,'خطوة')).join('')}</ul><button class="ctl add sm" data-act="addStep" data-i="${i}" data-j="${j}">${tr('＋ خطوة')}</button></div>`).join('')}<button class="ctl add" data-act="addAct" data-i="${i}">${tr('＋ نشاط')}</button></div></div>`};
+  const IK=[['المادة','المادة','#2f6fd0'],['المستوى','المستوى','#2e9a5b'],['الوحدة','الوحدة','#e08a1e'],['الأسبوع','الأسبوع','#7b3fb0'],['الحصة','الحصة','#d6336c'],['المدة','المدة_الإجمالية','#12877f'],['اليوم','اليوم','#8a6d3b']];
+  const meta=IK.map(([l,k,c])=>`<div class="ic" style="--k:${c}"><small>${lb('i_'+l,tr(l))}</small><span contenteditable data-p="معلومات_الدرس.${k}" data-ph="—">${esc(nm(tx(I[k])||(k==='المدة_الإجمالية'?tx(I['المدة']):'')))}</span></div>`).join('');
+  const card=(s,i,x)=>{const c=COL[i%COL.length],P=`جذاذة_مفصلة.${i}`;return `<div class="card" style="--c:${c};${x||''}"><div class="h"><span class="n">${i+1}</span>${ed(P+'.المرحلة',tx(s['المرحلة']),'اسم المرحلة')}<span class="d">${ed(P+'.المدة',tx(s['المدة']),'مدة')}</span><button class="ctl x" data-act="up" data-i="${i}" title="▲">▲</button><button class="ctl x" data-act="down" data-i="${i}" title="▼">▼</button><button class="ctl x" data-act="delStage" data-i="${i}" title="${tr('حذف المرحلة')}">✕</button></div><div class="b">${arr(s['الأنشطة']).map((a,j)=>`<div class="a"><button class="ctl x" data-act="delAct" data-i="${i}" data-j="${j}" title="${tr('حذف النشاط')}">✕</button><b>${ed(`${P}.الأنشطة.${j}.عنوان_النشاط`,tx(a['عنوان_النشاط']),'عنوان النشاط')}${a['مجال_النشاط']?' <small class="dm">('+ed(P+'.الأنشطة.'+j+'.مجال_النشاط',tx(a['مجال_النشاط']),'مجال')+')</small>':''}</b><ul>${arr(a['سير_النشاط']).map((x,k)=>li(`${P}.الأنشطة.${j}.سير_النشاط.${k}`,x,'خطوة')).join('')}</ul><button class="ctl add sm" data-act="addStep" data-i="${i}" data-j="${j}">${tr('＋ خطوة')}</button></div>`).join('')}<button class="ctl add" data-act="addAct" data-i="${i}">${tr('＋ نشاط')}</button></div></div>`};
   const isCl=s=>/اختتام|ختام|خاتمة|clôture|cloture|conclusion/i.test(tx(s['المرحلة'])),ci=S.length>1?S.map(isCl).lastIndexOf(true):-1,main=S.map((s,i)=>i).filter(i=>i!==ci),h=Math.ceil(main.length/2),R=main.slice(0,h).map(i=>card(S[i],i)).join(''),Lc=main.slice(h).map(i=>card(S[i],i)).join(''),CL=ci>=0?`<div class="cl">${card(S[ci],ci)}</div>`:'';
   const goals=arr(G['الأهداف']),means=arr(M['الوسائل']);
   const lex=[['كلمات بصرية','كلمات_بصرية'],['استراتيجيات','استراتيجيات'],['قواعد','قواعد']];
-  const T=TP(),lay=T.lay,sk=T.skin,HEAD=`<div class="ttl">${lb('ttl',tr('خطاطة ذهنية —'))} ${ed('معلومات_الدرس.عنوان_الحصة',title,'عنوان الحصة')}</div><div class="info">${meta}</div>`,OV=`<div class="oval"><b>${ed('معلومات_الدرس.عنوان_الحصة',title,'عنوان الحصة')}</b><small>${ed('معلومات_الدرس.المادة',tx(I['المادة']),'المادة')} · ${ed('معلومات_الدرس.المستوى',tx(I['المستوى']),'المستوى')}</small></div>`,BX=`<div class="box${goals.length?'':' emp'}"><h3>${lb('goalT',tr('عند نهاية الحصة'))}</h3><p>${ed('أهداف_الحصة.الصيغة_الافتتاحية',tx(G['الصيغة_الافتتاحية']),'الصيغة الافتتاحية')}</p><ul>${goals.map((g,k)=>li(`أهداف_الحصة.الأهداف.${k}`,tx(g),'هدف')).join('')}</ul><button class="ctl add sm" data-act="addGoal">${tr('＋ هدف')}</button></div>
+  const T=TP(),lay=T.lay,sk=T.skin,HEAD=`<div class="ttl">${lb('ttl',tr('خطاطة ذهنية —'))} ${ed('معلومات_الدرس.عنوان_الحصة',title,'عنوان الحصة')}</div><div class="info">${meta}</div>`,OV=`<div class="oval"><b>${ed('معلومات_الدرس.عنوان_الحصة',title,'عنوان الحصة')}</b><small>${ed('معلومات_الدرس.المادة',nm(tx(I['المادة'])),'المادة')} · ${ed('معلومات_الدرس.المستوى',nm(tx(I['المستوى'])),'المستوى')}</small></div>`,BX=`<div class="box${goals.length?'':' emp'}"><h3>${lb('goalT',tr('عند نهاية الحصة'))}</h3><p>${ed('أهداف_الحصة.الصيغة_الافتتاحية',tx(G['الصيغة_الافتتاحية']),'الصيغة الافتتاحية')}</p><ul>${goals.map((g,k)=>li(`أهداف_الحصة.الأهداف.${k}`,tx(g),'هدف')).join('')}</ul><button class="ctl add sm" data-act="addGoal">${tr('＋ هدف')}</button></div>
    <div class="box${means.length?'':' emp'}"><h3>${lb('meanT',tr('الوسائل'))}</h3><ul>${means.map((g,k)=>li(`الوسائل_الديداكتيكية.الوسائل.${k}`,tx(g),'وسيلة')).join('')}</ul><button class="ctl add sm" data-act="addMean">${tr('＋ وسيلة')}</button></div>
    <div class="box lx"><h3>${lb('lxT',tr('معلومات إضافية'))}</h3>${lex.map(([n,k])=>`<p><b>${lb('lx_'+k,tr(n))}:</b> <span contenteditable data-p="معلومات_إضافية.${k}" data-arr="1" data-ph="${tr('اكتب هنا…')}">${arr(L[k]).map(x=>esc(tx(x))).join(' • ')}</span></p>`).join('')}</div>`;
   const SEQ={1:'T',2:'TL TR',3:'TL TR B',4:'TL TR BL BR',5:'TL T TR BL BR',6:'TL T TR BL B BR',7:'TL T TR L R BL BR',8:'TL T TR L R BL B BR'},CELL={TL:[1,1],T:[1,2],TR:[1,3],L:[2,1],R:[2,3],BL:[3,1],B:[3,2],BR:[3,3]};
@@ -468,20 +469,45 @@ $('bPdf').onclick=async()=>{const b=$('bPdf'),old=b.innerHTML;
   catch(e){document.body.classList.remove('cap');links();st(e.message,1);alert(e.message)}
   finally{b.disabled=false;b.innerHTML=old}};
 
-/* ===== read PPTX / DOCX text in the browser (no size limit, no PDF conversion) ===== */
+/* ===== read PPTX / DOCX in the browser (text, SmartArt, notes, order, small-text slide images) ===== */
 const unesc=t=>t.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
-const xmlParas=(x,pTag,tTag)=>[...x.matchAll(new RegExp('<'+pTag+'[ >][\\s\\S]*?</'+pTag+'>','g'))].map(m=>unesc([...m[0].matchAll(new RegExp('<'+tTag+'(?: [^>]*)?>([\\s\\S]*?)</'+tTag+'>','g'))].map(t=>t[1]).join(''))).filter(t=>t.trim());
-async function officeText(f){
+const paraLines=(x,ns)=>{x=x.replace(/<mc:Fallback[\s\S]*?<\/mc:Fallback>/g,'');
+  const tok=new RegExp('<'+ns+':t(?: [^>]*)?>([\\s\\S]*?)</'+ns+':t>|<'+ns+':(?:br|tab|cr)\\b','g'),out=[];
+  for(const m of x.matchAll(new RegExp('<'+ns+':p[ >][\\s\\S]*?</'+ns+':p>','g'))){
+    const t=unesc([...m[0].matchAll(tok)].map(k=>k[1]!==undefined?k[1]:' ').join('')).replace(/\s+/g,' ').trim();
+    if(t&&t!==out[out.length-1])out.push(t)}
+  return out};
+const relsOf=async(z,path)=>{const f=z.file(path.replace(/([^/]+)$/,'_rels/$1.rels'));if(!f)return[];const x=await f.async('string');
+  return [...x.matchAll(/<Relationship\b[^>]*>/g)].map(m=>{const a=n=>(m[0].match(new RegExp('\\b'+n+'="([^"]*)"'))||[])[1]||'';return{id:a('Id'),type:a('Type'),target:a('Target')}})};
+const resolvePath=(base,t)=>{if(t[0]==='/')return t.slice(1);const p=base.replace(/[^/]*$/,'').split('/').filter(Boolean);for(const s of t.split('/')){if(s==='..')p.pop();else if(s&&s!=='.')p.push(s)}return p.join('/')};
+const MIME={png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp'};
+async function officeParts(f){
   await loadJs('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',()=>window.JSZip);
-  const z=await JSZip.loadAsync(f),num=n=>+(n.match(/(\d+)\.xml$/)||[0,0])[1];let out='';
-  if(/\.pptx$/i.test(f.name)){
-    const sl=Object.keys(z.files).filter(n=>/^ppt\/slides\/slide\d+\.xml$/.test(n)).sort((a,b)=>num(a)-num(b));
-    for(let i=0;i<sl.length;i++){const ps=xmlParas(await z.file(sl[i]).async('string'),'a:p','a:t');
-      const nn='ppt/notesSlides/notesSlide'+num(sl[i])+'.xml',nt=z.file(nn)?xmlParas(await z.file(nn).async('string'),'a:p','a:t'):[];
-      out+='\n### '+(LANG==='fr'?'Diapositive ':'شريحة ')+(i+1)+'\n'+ps.join('\n')+(nt.length?'\n['+(LANG==='fr'?'Notes':'ملاحظات')+'] '+nt.join(' '):'')+'\n'}
-  }else{const d=z.file('word/document.xml');out=d?xmlParas(await d.async('string'),'w:p','w:t').join('\n'):''}
-  if(out.replace(/###[^\n]*|[\s]/g,'').length<40)throw new Error(tr('لا نص قابل للقراءة في هذا الملف. إن كان صورًا فحوّله إلى PDF:')+' '+f.name);
-  return out.trim()}
+  const z=await JSZip.loadAsync(f),fr=LANG==='fr',noText=()=>new Error(tr('لا نص قابل للقراءة في هذا الملف. إن كان صورًا فحوّله إلى PDF:')+' '+f.name);
+  if(/\.docx$/i.test(f.name)){const d=z.file('word/document.xml'),L=d?paraLines(await d.async('string'),'w'):[];
+    if(L.join('').length<40)throw noText();return [{text:'--- '+f.name+' ---\n'+L.join('\n')}]}
+  const num=n=>+(n.match(/(\d+)\.xml$/)||[0,0])[1];
+  let slides=Object.keys(z.files).filter(n=>/^ppt\/slides\/slide\d+\.xml$/.test(n)).sort((a,b)=>num(a)-num(b));
+  try{const pr=await z.file('ppt/presentation.xml').async('string'),rl=await relsOf(z,'ppt/presentation.xml'),mp=Object.fromEntries(rl.map(r=>[r.id,resolvePath('ppt/presentation.xml',r.target)])),
+    ord=[...pr.matchAll(/<p:sldId\b[^>]*\br:id="([^"]+)"/g)].map(m=>mp[m[1]]).filter(n=>n&&z.file(n));
+    if(ord.length)slides=ord.concat(slides.filter(n=>!ord.includes(n)))}catch(_){}
+  let text='--- '+f.name+' ---',imgs=[],bytes=0,chars=0;
+  for(let i=0;i<slides.length;i++){
+    const sx=await z.file(slides[i]).async('string'),rels=await relsOf(z,slides[i]),L=paraLines(sx,'a'),NT=[];
+    for(const r of rels){
+      if(/diagramData$/.test(r.type)){const dp=resolvePath(slides[i],r.target);if(z.file(dp))L.push(...paraLines(await z.file(dp).async('string'),'a').filter(t=>!L.includes(t)))}
+      if(/notesSlide$/.test(r.type)){const np=resolvePath(slides[i],r.target);if(z.file(np))NT.push(...paraLines(await z.file(np).async('string'),'a').filter(t=>!/^\d+$/.test(t)))}}
+    const len=L.join('').length;chars+=len;
+    text+='\n\n### '+(fr?'Diapositive ':'شريحة ')+(i+1)+(/<p:sld\b[^>]*\bshow="0"/.test(sx)?(fr?' (masquée)':' (مخفية)'):'')+'\n'+L.join('\n')+(NT.length?'\n['+(fr?'Notes':'ملاحظات')+'] '+NT.join(' '):'');
+    if(len<120&&imgs.length<16){let k=0;for(const r of rels.filter(r=>/\/image$/.test(r.type))){
+      const ip=resolvePath(slides[i],r.target),ext=(ip.split('.').pop()||'').toLowerCase();if(!MIME[ext]||!z.file(ip)||k>=2||imgs.length>=16)continue;
+      const d=await z.file(ip).async('base64'),sz=d.length*.75;if(sz<4000||sz>3e6||bytes+sz>9e6)continue;
+      bytes+=sz;k++;imgs.push({text:'['+(fr?'Image de la diapositive ':'صورة من الشريحة ')+(i+1)+']'},{inlineData:{mimeType:MIME[ext],data:d}})}}
+  }
+  if(chars<40&&!imgs.length)throw noText();
+  if(imgs.length)text+='\n\n'+(fr?"Les images ci-dessous proviennent de diapositives presque sans texte : lis leur contenu (durées, étapes, consignes).":'الصور التالية من شرائح قليلة النص؛ اقرأ ما فيها (المدد والمراحل والتعليمات).');
+  return [{text},...imgs]}
+const officeText=async f=>(await officeParts(f)).filter(p=>p.text).map(p=>p.text).join('\n');
 
 /* ===== debounced history sync ===== */
 let _hs;function syncHistSoon(){clearTimeout(_hs);_hs=setTimeout(()=>{try{const H=getHist(),i=H.findIndex(h=>h.ts===window.__ht);if(i>=0){H[i].data=JSON.parse(JSON.stringify(DATA));ls.set(HK,JSON.stringify(H))}}catch(_){}},900)}
