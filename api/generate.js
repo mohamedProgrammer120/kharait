@@ -42,7 +42,27 @@ export default async function handler(req, res) {
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return json(res, 503, { error: "Le service Gemini n'est pas encore configuré sur le serveur." });
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabasePublicKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!apiKey || !supabaseUrl || !supabasePublicKey) {
+    return json(res, 503, { error: "Le serveur n'est pas encore configuré (Gemini/Supabase)." });
+  }
+
+  // Every generation request must carry a valid Supabase user access token.
+  const authorization = req.headers.authorization || "";
+  if (!authorization.startsWith("Bearer ")) {
+    return json(res, 401, { error: "Connexion requise pour utiliser Kharait." });
+  }
+  try {
+    const authResponse = await fetch(`${supabaseUrl.replace(/\\/$/, "")}/auth/v1/user`, {
+      headers: { apikey: supabasePublicKey, Authorization: authorization },
+    });
+    if (!authResponse.ok) return json(res, 401, { error: "Session invalide ou expirée. Reconnectez-vous." });
+    const user = await authResponse.json();
+    if (!user?.id) return json(res, 401, { error: "Utilisateur non authentifié." });
+  } catch {
+    return json(res, 503, { error: "Impossible de vérifier la session Supabase." });
+  }
 
   const ip = String(req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown").split(",")[0].trim();
   if (rateLimited(ip)) return json(res, 429, { error: "Trop de demandes. Réessayez dans une minute." });
