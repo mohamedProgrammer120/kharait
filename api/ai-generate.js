@@ -11,16 +11,24 @@ function json(res, status, data) {
   res.setHeader("Pragma", "no-cache");
   return res.end(JSON.stringify(data));
 }
+function pruneRateLimitEntries(now) {
+  if (hits.size <= 4000) return;
+  for (const [address, item] of hits) {
+    if (now - item.start >= WINDOW_MS) hits.delete(address);
+    if (hits.size <= 3000) return;
+  }
+  // If every entry is still active, cap memory by dropping the oldest entries.
+  while (hits.size > 4000) hits.delete(hits.keys().next().value);
+}
 function rateLimited(ip) {
   const now = Date.now(), entry = hits.get(ip);
-  if (!entry || now - entry.start >= WINDOW_MS) { hits.set(ip, { start: now, count: 1 }); return false; }
-  entry.count += 1;
-  if (hits.size > 4000) {
-    for (const [address, item] of hits) {
-      if (now - item.start >= WINDOW_MS) hits.delete(address);
-      if (hits.size <= 3000) break;
-    }
+  if (!entry || now - entry.start >= WINDOW_MS) {
+    hits.set(ip, { start: now, count: 1 });
+    pruneRateLimitEntries(now);
+    return false;
   }
+  entry.count += 1;
+  pruneRateLimitEntries(now);
   return entry.count > 12;
 }
 const GEMINI_FILE_URI = /^https:\/\/generativelanguage\.googleapis\.com\/v1beta\/files\/[A-Za-z0-9_-]{1,80}$/;
