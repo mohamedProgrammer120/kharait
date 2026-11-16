@@ -3,6 +3,7 @@
 const WINDOW_MS = 60_000;
 const MAX_REQUEST_BYTES = 4.2 * 1024 * 1024;
 const MAX_PARTS = 80;
+const { authenticate, decryptSecret } = require("./_lib/credentials");
 const hits = new Map();
 
 function json(res, status, data) {
@@ -67,18 +68,10 @@ function toAnthropicContent(parts) {
 export default async function handler(req, res) {
   if (req.method !== "POST") { res.setHeader("Allow", "POST"); return json(res, 405, { error: "Method not allowed" }); }
 
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabasePublicKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabasePublicKey) return json(res, 503, { error: "Configuration Supabase manquante sur le serveur." });
-
-  const authorization = req.headers.authorization || "";
-  if (!authorization.startsWith("Bearer ")) return json(res, 401, { error: "Connexion Kharait requise." });
+  let user;
   try {
-    const base = supabaseUrl.endsWith("/") ? supabaseUrl.slice(0, -1) : supabaseUrl;
-    const auth = await fetch(base + "/auth/v1/user", { headers: { apikey: supabasePublicKey, Authorization: authorization } });
-    if (!auth.ok) return json(res, 401, { error: "Session Kharait invalide. Reconnectez-vous." });
-    const user = await auth.json();
-    if (!user?.id) return json(res, 401, { error: "Utilisateur non authentifié." });
+    user = await authenticate(req);
+    if (!user) return json(res, 401, { error: "Session Kharait invalide. Reconnectez-vous." });
   } catch { return json(res, 503, { error: "Vérification de session impossible." }); }
 
   const ip = String(req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown").split(",")[0].trim();
@@ -89,7 +82,18 @@ export default async function handler(req, res) {
     if (Buffer.byteLength(raw, "utf8") > MAX_REQUEST_BYTES) return json(res, 413, { error: "Fichiers trop volumineux (maximum 3 Mo)." });
     const body = typeof req.body === "object" && req.body ? req.body : JSON.parse(raw);
     const provider = body.provider, model = body.model, parts = body.parts;
-    const key = req.headers["x-kharait-provider-key"];
+    let key = req.headers["x-kharait-provider-key"];
+    if (!key) {
+      const saved = await fetch(user.base + "/rest/v1/ai_credentials?select=key_ciphertext,key_iv,key_tag&provider=eq." + encodeURIComponent(provider), {
+        headers: { apikey: user.pub, Authorization: user.authorization }
+      });
+      if (!saved.ok) return json(res, 502, { error: "Impossible de récupérer votre clé IA enregistrée." });
+      const rows = await saved.json();
+      if (rows[0]) {
+        try { key = decryptSecret(rows[0]); }
+        catch { return json(res, 503, { error: "Impossible de déchiffrer votre clé enregistrée. Vérifiez la configuration Vercel." }); }
+      }
+    }
     if (typeof key !== "string" || key.length < 12 || key.length > 500) return json(res, 400, { error: "Clé API personnelle manquante ou invalide." });
     if (!["gemini", "groq", "openrouter", "openai", "anthropic"].includes(provider)) return json(res, 400, { error: "Fournisseur IA non pris en charge." });
     if (provider !== "gemini" && Array.isArray(parts) && parts.some(p => p && p.fileData)) return json(res, 400, { error: "Les fichiers envoyés directement ne sont pris en charge que par Gemini." });
