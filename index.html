@@ -176,12 +176,12 @@ body:not(.auth-ok)>:not(#authGate):not(script){visibility:hidden;pointer-events:
   <div class="m">
     <div class="sec"><div class="l"><i>1</i> مزوّد الذكاء الاصطناعي</div>
       <select id="aiProvider" dir="ltr"><option value="gemini">Google Gemini</option><option value="groq">Groq</option><option value="openrouter">OpenRouter</option><option value="openai">OpenAI</option><option value="anthropic">Anthropic Claude</option></select>
-      <small id="providerHint" style="display:block;color:#6b7690;font-size:12px;line-height:1.7">أدخل مفتاحك الشخصي. لا يُحفظ في قاعدة البيانات أو التخزين المحلي.</small>
+      <small id="providerHint" style="display:block;color:#6b7690;font-size:12px;line-height:1.7">احفظ مفتاحك مرة واحدة بشكل مشفّر في حسابك، وسيُستخدم تلقائياً لاحقاً.</small>
     </div>
     <div class="sec"><div class="l"><i>2</i> مفتاح API الشخصي</div>
       <input id="aiKey" type="password" dir="ltr" autocomplete="off" spellcheck="false" placeholder="Collez votre clé API personnelle">
-      <div class="row"><button id="openRouterConnect" type="button" class="s" style="background:#e3e8f3;color:#1d2a44">Connecter OpenRouter (OAuth)</button><button id="clearAiKey" type="button" class="s" style="background:#fde7e5;color:#b3261e">Effacer la clé</button></div>
-    </div>
+      <div class="row"><button id="saveAiKey" type="button">حفظ المفتاح بأمان</button><button id="openRouterConnect" type="button" class="s" style="background:#e3e8f3;color:#1d2a44">Connecter OpenRouter (OAuth)</button><button id="clearAiKey" type="button" class="s" style="background:#fde7e5;color:#b3261e">مسح المفتاح المحفوظ</button></div>
+    </div><small id="savedKeyStatus" style="font-size:12px;color:#6b7690">سجّل الدخول لتحميل حالة المفتاح.</small>
     <div class="sec"><div class="l"><i>3</i> Modèle IA</div>
       <input id="mdl" list="mdlList" dir="ltr" autocomplete="off" spellcheck="false" placeholder="gemini-3.5-flash"><datalist id="mdlList"></datalist><small style="display:block;color:#6b7690;font-size:12px;line-height:1.7">اختر من الاقتراحات أو اكتب أي معرّف نموذج متاح في حسابك.</small></div>
     <div class="sec"><div class="l"><i>4</i> ملفات الحصة</div>
@@ -205,9 +205,30 @@ const PROVIDER_HINTS={gemini:'Google AI Studio : clé API personnelle.',groq:'Gr
 let aiKeyMemory='';
 const provider=()=>$('aiProvider').value;
 function refreshAiModels(){const p=provider(),list=MODEL_OPTIONS[p]||[];$('mdlList').innerHTML=list.map(m=>`<option value="${m}">`).join('');$('mdl').value=list[0]||'';$('providerHint').textContent=PROVIDER_HINTS[p]||'';$('openRouterConnect').hidden=p!=='openrouter';$('aiKey').placeholder=p==='gemini'?'AIza…':p==='groq'?'gsk_…':p==='openrouter'?'sk-or-v1-…':p==='openai'?'sk-proj-…':'sk-ant-…';}
-$('aiProvider').onchange=()=>{aiKeyMemory='';$('aiKey').value='';refreshAiModels()};
+$('aiProvider').onchange=()=>{aiKeyMemory='';$('aiKey').value='';refreshAiModels();loadSavedAiKeyStatus()};
 $('aiKey').oninput=()=>{aiKeyMemory=$('aiKey').value.trim()};
-$('clearAiKey').onclick=()=>{aiKeyMemory='';$('aiKey').value='';$('aiKey').focus()};
+async function credentialCall(method,body){
+ const {data}=await cloudClient.auth.getSession(),token=data.session?.access_token;
+ if(!token)throw new Error('سجّل الدخول أولاً.');
+ const r=await fetch('/api/ai-credentials',{method,headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},...(body?{body:JSON.stringify(body)}:{})});
+ const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'تعذر حفظ المفتاح.');return j;
+}
+async function loadSavedAiKeyStatus(){
+ const el=$('savedKeyStatus');if(!el)return;
+ if(!cloudUser){el.textContent='سجّل الدخول لتحميل مفاتيحك المحفوظة.';return}
+ try{const d=await credentialCall('GET');el.textContent=(d.providers||[]).includes(provider())?'✓ مفتاح '+provider()+' محفوظ ومشفّر، وسيُستخدم تلقائياً.':'لا يوجد مفتاح محفوظ لهذا المزوّد.'}
+ catch(e){el.textContent=e.message}
+}
+$('saveAiKey').onclick=async()=>{
+ const key=aiKeyMemory||$('aiKey').value.trim();if(!key)return st('أدخل مفتاح API أولاً',1);
+ try{await credentialCall('POST',{provider:provider(),key});aiKeyMemory='';$('aiKey').value='';$('savedKeyStatus').textContent='✓ تم حفظ المفتاح مشفّراً في حسابك.';st('تم الحفظ. لن تحتاج إلى إدخال المفتاح مرة أخرى.')}
+ catch(e){st(e.message,1)}
+};
+$('clearAiKey').onclick=async()=>{
+ aiKeyMemory='';$('aiKey').value='';
+ try{await credentialCall('DELETE',{provider:provider()});$('savedKeyStatus').textContent='تم حذف المفتاح المحفوظ.';st('تم حذف المفتاح من حسابك.')}
+ catch(e){st(e.message,1)}
+};
 refreshAiModels();
 async function connectOpenRouter(){
   const random=new Uint8Array(32);crypto.getRandomValues(random);
@@ -345,8 +366,9 @@ async function callG(m,fs){
       const accessToken=sessionData.session?.access_token;
       if(!accessToken)throw new Error('Connectez-vous pour utiliser Kharait.');
       const key=aiKeyMemory||$('aiKey').value.trim();
-      if(!key)throw new Error('Ajoutez votre clé API personnelle ou connectez OpenRouter.');
-      const r=await fetch('/api/ai-generate',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken,'X-Kharait-Provider-Key':key},body:JSON.stringify({provider:provider(),model:m,parts})});
+      const headers={'Content-Type':'application/json','Authorization':'Bearer '+accessToken};
+      if(key)headers['X-Kharait-Provider-Key']=key;
+      const r=await fetch('/api/ai-generate',{method:'POST',headers,body:JSON.stringify({provider:provider(),model:m,parts})});
       const j=await r.json().catch(()=>({}));
       if(!r.ok){const e=new Error(j.error||('HTTP '+r.status));e.retry=[429,500,502,503,504].includes(r.status);throw e}
       const t=j.text||'';
@@ -553,7 +575,7 @@ function cloudState(){
     authMessage('Connexion réussie.');
     cloudMessage('متصل بالحساب: '+cloudUser.email);
     $('cloudEmail').value=cloudUser.email||'';$('cloudPassword').value='';
-    loadCloudMaps();
+    loadCloudMaps();loadSavedAiKeyStatus();
   }else{
     authMessage('Connectez-vous pour continuer.');
     cloudMessage('غير مسجل الدخول. سجّل الدخول أو أنشئ حسابًا.');
