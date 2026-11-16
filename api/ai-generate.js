@@ -3,7 +3,7 @@
 const WINDOW_MS = 60_000;
 const MAX_REQUEST_BYTES = 4.2 * 1024 * 1024;
 const MAX_PARTS = 80;
-const { authenticate, decryptSecret } = require("./_lib/credentials");
+import { authenticate, decryptSecret } from "./_lib/credentials.js";
 const hits = new Map();
 
 function json(res, status, data) {
