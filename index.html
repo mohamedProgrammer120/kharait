@@ -183,7 +183,7 @@ body:not(.auth-ok)>:not(#authGate):not(script){visibility:hidden;pointer-events:
       <div class="row"><button id="saveAiKey" type="button">حفظ المفتاح بأمان</button><button id="openRouterConnect" type="button" class="s" style="background:#e3e8f3;color:#1d2a44">Connecter OpenRouter (OAuth)</button><button id="clearAiKey" type="button" class="s" style="background:#fde7e5;color:#b3261e">مسح المفتاح المحفوظ</button></div>
     </div><small id="savedKeyStatus" style="font-size:12px;color:#6b7690">سجّل الدخول لتحميل حالة المفتاح.</small>
     <div class="sec"><div class="l"><i>3</i> Modèle IA</div>
-      <input id="mdl" list="mdlList" dir="ltr" autocomplete="off" spellcheck="false" placeholder="gemini-3.5-flash"><datalist id="mdlList"></datalist><small style="display:block;color:#6b7690;font-size:12px;line-height:1.7">اختر من الاقتراحات أو اكتب أي معرّف نموذج متاح في حسابك.</small></div>
+      <select id="mdl" dir="ltr" aria-label="Modèle IA"></select><small style="display:block;color:#6b7690;font-size:12px;line-height:1.7">اختر نموذجاً من القائمة. التوفر النهائي يعتمد على حسابك ومفتاح API لدى المزوّد.</small></div>
     <div class="sec"><div class="l"><i>4</i> ملفات الحصة</div>
       <div id="dz"><b>📄</b>اسحب الملفات هنا أو اضغط للاختيار<br><small>PDF · PPTX · DOCX · صور · نص · JSON</small></div>
       <input id="fi" type="file" multiple accept=".pdf,image/*,.txt,.md,.json,.pptx,.docx" hidden>
@@ -200,11 +200,11 @@ body:not(.auth-ok)>:not(#authGate):not(script){visibility:hidden;pointer-events:
 <script src="supabase-config.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-const MODEL_OPTIONS={gemini:['gemini-3.8-flash','gemini-3.7-flash','gemini-3.6-flash','gemini-3.5-flash-lite'],groq:['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.3-70b-versatile'],openrouter:['google/gemini-3.8-flash','openai/gpt-4.1-mini','anthropic/claude-sonnet-5-5'],openai:['gpt-4.1-mini','gpt-4.1'],anthropic:['claude-sonnet-5-5','claude-opus-5-5','claude-haiku-5-5']};
+const MODEL_OPTIONS={gemini:['gemini-3.8-flash','gemini-3.7-flash','gemini-3.6-flash','gemini-3.5-flash','gemini-3.5-flash-lite','gemini-3.1-flash-lite'],groq:['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.3-70b-versatile'],openrouter:['google/gemini-3.8-flash','openai/gpt-4.1-mini','anthropic/claude-sonnet-5-5'],openai:['gpt-4.1-mini','gpt-4.1'],anthropic:['claude-sonnet-5-5','claude-opus-5-5','claude-haiku-5-5']};
 const PROVIDER_HINTS={gemini:'Google AI Studio : clé API personnelle.',groq:'Groq Console : clé API personnelle. Les modèles disponibles dépendent de ton compte.',openrouter:'OpenRouter : clé personnelle ou connexion OAuth sans copier-coller.',openai:'OpenAI Platform : clé API personnelle (facturation API séparée de ChatGPT Plus).',anthropic:'Anthropic Console : clé API personnelle.'};
 let aiKeyMemory='';
 const provider=()=>$('aiProvider').value;
-function refreshAiModels(){const p=provider(),list=MODEL_OPTIONS[p]||[];$('mdlList').innerHTML=list.map(m=>`<option value="${m}">`).join('');$('mdl').value=list[0]||'';$('providerHint').textContent=PROVIDER_HINTS[p]||'';$('openRouterConnect').hidden=p!=='openrouter';$('aiKey').placeholder=p==='gemini'?'AIza…':p==='groq'?'gsk_…':p==='openrouter'?'sk-or-v1-…':p==='openai'?'sk-proj-…':'sk-ant-…';}
+function refreshAiModels(){const p=provider(),list=MODEL_OPTIONS[p]||[];$('mdl').innerHTML=list.map((m,i)=>`<option value="${m}">${m}${i===0?' — recommandé':''}</option>`).join('');$('mdl').value=list[0]||'';$('providerHint').textContent=PROVIDER_HINTS[p]||'';$('openRouterConnect').hidden=p!=='openrouter';$('aiKey').placeholder=p==='gemini'?'AIza…':p==='groq'?'gsk_…':p==='openrouter'?'sk-or-v1-…':p==='openai'?'sk-proj-…':'sk-ant-…';}
 $('aiProvider').onchange=()=>{aiKeyMemory='';$('aiKey').value='';refreshAiModels();loadSavedAiKeyStatus()};
 $('aiKey').oninput=()=>{aiKeyMemory=$('aiKey').value.trim()};
 async function credentialCall(method,body){
