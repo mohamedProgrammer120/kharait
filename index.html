@@ -534,8 +534,19 @@ initCloud();
 function authMessage(message,error=false){
   const el=$('authMessage');if(el){el.textContent=message;el.style.color=error?'#b3261e':'#2e7d52'}
 }
+let lastCloudUserId=undefined;
 function cloudState(){
   if(!cloudClient)return;
+  const nextUserId=cloudUser?.id||null;
+  if(lastCloudUserId!==nextUserId){
+    // Generated maps and API credentials are private to one account on shared devices.
+    aiKeyMemory='';
+    const keyInput=$('aiKey');if(keyInput)keyInput.value='';
+    ls.del('gm_last');ls.del('gm_hist');
+    DATA=null;$('map').replaceChildren();
+    cleanupGeminiFiles();
+    lastCloudUserId=nextUserId;
+  }
   document.body.classList.toggle('auth-ok',!!cloudUser);
   if(cloudUser){
     authMessage('Connexion réussie.');
@@ -767,6 +778,5 @@ $('bDur').onclick=()=>{
   if(bad)alert(tr('المدة قصيرة جدًا لتوزيعها على المراحل'));
   render(DATA)};
 </script>
-<script src="auth-hardening.js" defer></script>
 </body>
 </html>
