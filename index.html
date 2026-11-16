@@ -200,7 +200,7 @@ body:not(.auth-ok)>:not(#authGate):not(script){visibility:hidden;pointer-events:
 <script src="supabase-config.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-const MODEL_OPTIONS={gemini:['gemini-3.5-flash','gemini-3.6-flash','gemini-3.5-flash-lite','gemini-2.5-flash','gemini-2.5-flash-lite'],groq:['openai/gpt-oss-20b','llama-3.3-70b-versatile'],openrouter:['google/gemini-2.5-flash','openai/gpt-4.1-mini','anthropic/claude-sonnet-4'],openai:['gpt-4.1-mini','gpt-4.1'],anthropic:['claude-sonnet-4-20250514','claude-3-7-sonnet-20250219']};
+const MODEL_OPTIONS={gemini:['gemini-3.8-flash','gemini-3.7-flash','gemini-3.6-flash','gemini-3.5-flash-lite'],groq:['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.3-70b-versatile'],openrouter:['google/gemini-3.8-flash','openai/gpt-4.1-mini','anthropic/claude-sonnet-5-5'],openai:['gpt-4.1-mini','gpt-4.1'],anthropic:['claude-sonnet-5-5','claude-opus-5-5','claude-haiku-5-5']};
 const PROVIDER_HINTS={gemini:'Google AI Studio : clé API personnelle.',groq:'Groq Console : clé API personnelle. Les modèles disponibles dépendent de ton compte.',openrouter:'OpenRouter : clé personnelle ou connexion OAuth sans copier-coller.',openai:'OpenAI Platform : clé API personnelle (facturation API séparée de ChatGPT Plus).',anthropic:'Anthropic Console : clé API personnelle.'};
 let aiKeyMemory='';
 const provider=()=>$('aiProvider').value;
@@ -518,6 +518,7 @@ $('bPng').onclick=async()=>{
 /* ===== optional Supabase account and cross-device map storage ===== */
 let cloudClient=null,cloudUser=null;
 const cloudMessage=(message,error=false)=>{const el=$('cloudStatus');if(el){el.textContent=message;el.style.color=error?'#b3261e':'#2e7d52'}};
+function cloudErrorMessage(error){const code=error?.code||'',message=String(error?.message||'');if(['PGRST205','PGRST204','42P01'].includes(code)||(/lesson_maps/i.test(message)&&/(schema cache|does not exist|not found)/i.test(message)))return 'جدول lesson_maps غير موجود أو لم يُحدَّث مخطط Supabase. نفّذ supabase/schema.sql في SQL Editor ثم أعد المحاولة.';return message||'حدث خطأ غير متوقع في Supabase.';}
 function initCloud(){
   const cfg=window.KHARAIT_SUPABASE_CONFIG||{};
   if(!cfg.url||!cfg.anonKey||!window.supabase?.createClient){
@@ -533,8 +534,20 @@ initCloud();
 function authMessage(message,error=false){
   const el=$('authMessage');if(el){el.textContent=message;el.style.color=error?'#b3261e':'#2e7d52'}
 }
+let lastCloudUserId=ls.get('gm_owner_id')||null;
 function cloudState(){
   if(!cloudClient)return;
+  const nextUserId=cloudUser?.id||null;
+  if(lastCloudUserId!==nextUserId||(!nextUserId&&(ls.get('gm_last')||ls.get('gm_hist')))){
+    // Generated maps and API credentials are private to one account on shared devices.
+    aiKeyMemory='';
+    const keyInput=$('aiKey');if(keyInput)keyInput.value='';
+    ls.del('gm_last');ls.del('gm_hist');
+    DATA=null;$('map').replaceChildren();
+    cleanupGeminiFiles();
+  }
+  lastCloudUserId=nextUserId;
+  if(nextUserId)ls.set('gm_owner_id',nextUserId);else ls.del('gm_owner_id');
   document.body.classList.toggle('auth-ok',!!cloudUser);
   if(cloudUser){
     authMessage('Connexion réussie.');
@@ -581,21 +594,25 @@ $('cloudSignup').onclick=async()=>{
 $('cloudLogout').onclick=async()=>{if(!cloudClient)return;const {error}=await cloudClient.auth.signOut();cloudMessage(error?.message||'تم تسجيل الخروج.',!!error)};
 $('cloudSave').onclick=async()=>{
   if(!cloudClient||!cloudUser)return cloudMessage('سجّل الدخول أولًا.',true);
-  const title=ttl(DATA[0])||'Carte sans titre';
-  const {error}=await cloudClient.from('lesson_maps').insert({user_id:cloudUser.id,title,content:outLang(DATA.length===1?DATA[0]:DATA)});
-  cloudMessage(error?.message||'تم حفظ الخريطة في حسابك.',!!error);if(!error)loadCloudMaps();
+  if(!Array.isArray(DATA)||!DATA.length)return cloudMessage('أنشئ خريطة أولًا قبل حفظها.',true);
+  try{
+    const title=ttl(DATA[0])||'Carte sans titre';
+    const {error}=await cloudClient.from('lesson_maps').insert({user_id:cloudUser.id,title,content:outLang(DATA.length===1?DATA[0]:DATA)});
+    cloudMessage(error?cloudErrorMessage(error):'تم حفظ الخريطة في حسابك.',!!error);
+    if(!error)await loadCloudMaps();
+  }catch(error){cloudMessage(cloudErrorMessage(error),true)}
 };
 async function loadCloudMaps(){
   if(!cloudClient||!cloudUser)return;
   const {data,error}=await cloudClient.from('lesson_maps').select('id,title,updated_at,content').order('updated_at',{ascending:false}).limit(30);
-  if(error){cloudMessage(error.message,true);return}
+  if(error){cloudMessage(cloudErrorMessage(error),true);return}
   $('cloudList').innerHTML=data.length?data.map((item,i)=>'<div class="sl" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><div style="min-width:0"><b>'+esc(item.title)+'</b><br><small style="color:#6b7690">'+new Date(item.updated_at).toLocaleString()+'</small></div><button type="button" data-cloud-open="'+esc(item.id)+'">فتح</button></div>').join(''):'<p style="color:#6b7690">لا توجد خرائط محفوظة في السحابة بعد.</p>';
 }
 $('cloudRefresh').onclick=loadCloudMaps;
 $('cloudList').onclick=async e=>{
   const b=e.target.closest('[data-cloud-open]');if(!b||!cloudClient||!cloudUser)return;
   const {data,error}=await cloudClient.from('lesson_maps').select('content').eq('id',b.dataset.cloudOpen).single();
-  if(error){cloudMessage(error.message,true);return}
+  if(error){cloudMessage(cloudErrorMessage(error),true);return}
   $('dCloud').close();render(canon(data.content));
 };
 

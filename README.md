@@ -71,3 +71,14 @@ Les cartes peuvent être sauvegardées dans Supabase. Les politiques Row Level S
 **Limites :** une requête vers l'API ne doit pas dépasser ~4 Mo (limite Vercel). Les PPTX/DOCX sont lus dans le navigateur (texte, notes, SmartArt) : seul le texte et au plus 8 images compressées sont envoyés, quelle que soit la taille du fichier. Le nom de fichier de type `NE_AR_N3_P2_SEM3_S6` fournit niveau, phase, semaine et séance quand le document ne les contient pas.
 
 **Testé :** la passerelle `/api/ai-generate` (authentification, refus des PDF pour OpenAI/Groq/OpenRouter, limite de débit, clé en en-tête uniquement) avec des fournisseurs simulés. Les appels réels aux cinq fournisseurs restent à valider avec les clés de leurs utilisateurs.
+
+
+## 7. Audit de sécurité et confidentialité (novembre 2026)
+
+- Le navigateur ne partage plus les cartes locales ni les clés IA entre deux comptes utilisés sur le même appareil : à la déconnexion ou au changement de compte, l'état privé local et la clé de fournisseur en mémoire sont effacés.
+- Si la table `lesson_maps` est absente du cache PostgREST, l'interface affiche désormais la marche à suivre au lieu d'un message technique brut.
+- Le schéma accorde explicitement les opérations de cartes au rôle `authenticated`, retire les droits du rôle `anon` et demande le rechargement du cache PostgREST.
+- Les délais d'attente couvrent désormais aussi la lecture de la réponse du fournisseur, et le registre de limitation de débit nettoie ses anciennes entrées.
+- Les modèles proposés dans l'interface ont été actualisés à partir des catalogues documentés des fournisseurs. Les identifiants peuvent toujours être remplacés manuellement, car leur disponibilité dépend du compte et du fournisseur.
+
+**À faire après déploiement :** exécuter à nouveau `supabase/schema.sql` dans SQL Editor. Ce script est conçu pour être relancé. Les appels réels des fournisseurs doivent être vérifiés avec des clés de test individuelles.

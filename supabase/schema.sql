@@ -45,3 +45,12 @@ drop trigger if exists lesson_maps_updated_at on public.lesson_maps;
 create trigger lesson_maps_updated_at
 before update on public.lesson_maps
 for each row execute function public.set_lesson_maps_updated_at();
+
+
+-- Explicit least-privilege grants for authenticated users only.
+grant usage on schema public to authenticated;
+revoke all on table public.lesson_maps from anon;
+grant select, insert, update, delete on table public.lesson_maps to authenticated;
+
+-- Ask PostgREST (Supabase Data API) to refresh its schema cache.
+notify pgrst, 'reload schema';
