@@ -594,9 +594,13 @@ $('cloudSignup').onclick=async()=>{
 $('cloudLogout').onclick=async()=>{if(!cloudClient)return;const {error}=await cloudClient.auth.signOut();cloudMessage(error?.message||'تم تسجيل الخروج.',!!error)};
 $('cloudSave').onclick=async()=>{
   if(!cloudClient||!cloudUser)return cloudMessage('سجّل الدخول أولًا.',true);
-  const title=ttl(DATA[0])||'Carte sans titre';
-  const {error}=await cloudClient.from('lesson_maps').insert({user_id:cloudUser.id,title,content:outLang(DATA.length===1?DATA[0]:DATA)});
-  cloudMessage(error?cloudErrorMessage(error):'تم حفظ الخريطة في حسابك.',!!error);if(!error)loadCloudMaps();
+  if(!Array.isArray(DATA)||!DATA.length)return cloudMessage('أنشئ خريطة أولًا قبل حفظها.',true);
+  try{
+    const title=ttl(DATA[0])||'Carte sans titre';
+    const {error}=await cloudClient.from('lesson_maps').insert({user_id:cloudUser.id,title,content:outLang(DATA.length===1?DATA[0]:DATA)});
+    cloudMessage(error?cloudErrorMessage(error):'تم حفظ الخريطة في حسابك.',!!error);
+    if(!error)await loadCloudMaps();
+  }catch(error){cloudMessage(cloudErrorMessage(error),true)}
 };
 async function loadCloudMaps(){
   if(!cloudClient||!cloudUser)return;
