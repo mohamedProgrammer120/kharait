@@ -245,7 +245,7 @@ async function finishOpenRouterOAuth(){
   const verifier=sessionStorage.getItem('kharait_or_verifier');sessionStorage.removeItem('kharait_or_verifier');
   if(!verifier){authMessage('OpenRouter OAuth : vérificateur PKCE absent. Recommencez la connexion.',true);return}
   try{const r=await fetch('https://openrouter.ai/api/v1/auth/keys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,code_verifier:verifier,code_challenge_method:'S256'})});const j=await r.json();if(!r.ok||!j.key)throw new Error(j.error?.message||'Échange OAuth impossible');
-    $('aiProvider').value='openrouter';refreshAiModels();aiKeyMemory=j.key;$('aiKey').value=j.key;history.replaceState({},document.title,location.pathname);authMessage('OpenRouter connecté. La clé reste uniquement en mémoire dans cet onglet.');
+    $('aiProvider').value='openrouter';refreshAiModels();aiKeyMemory=j.key;$('aiKey').value=j.key;await credentialCall('POST',{provider:'openrouter',key:j.key});aiKeyMemory='';$('aiKey').value='';$('savedKeyStatus').textContent='✓ OpenRouter connecté : clé enregistrée et chiffrée dans votre compte.';history.replaceState({},document.title,location.pathname);authMessage('OpenRouter connecté. Votre clé a été enregistrée de façon chiffrée.');
   }catch(e){authMessage('Erreur OpenRouter : '+e.message,true);}
 }
 finishOpenRouterOAuth();
