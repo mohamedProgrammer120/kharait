@@ -1,0 +1,7 @@
+const crypto=require("node:crypto");
+function masterKey(){const key=Buffer.from(process.env.KHARAIT_CREDENTIALS_ENCRYPTION_KEY||"","base64");if(key.length!==32)throw new Error("CREDENTIAL_ENCRYPTION_NOT_CONFIGURED");return key}
+function encryptSecret(value){const iv=crypto.randomBytes(12),c=crypto.createCipheriv("aes-256-gcm",masterKey(),iv),data=Buffer.concat([c.update(value,"utf8"),c.final()]);return{key_ciphertext:data.toString("base64"),key_iv:iv.toString("base64"),key_tag:c.getAuthTag().toString("base64")}}
+function decryptSecret(row){const d=crypto.createDecipheriv("aes-256-gcm",masterKey(),Buffer.from(row.key_iv,"base64"));d.setAuthTag(Buffer.from(row.key_tag,"base64"));return Buffer.concat([d.update(Buffer.from(row.key_ciphertext,"base64")),d.final()]).toString("utf8")}
+function json(res,status,data){res.status(status).setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store, max-age=0");return res.end(JSON.stringify(data))}
+async function authenticate(req){const base=(process.env.SUPABASE_URL||"").replace(/\/$/,""),pub=process.env.SUPABASE_PUBLISHABLE_KEY||process.env.SUPABASE_ANON_KEY||"",authorization=req.headers.authorization||"";if(!base||!pub||!authorization.startsWith("Bearer "))return null;const r=await fetch(base+"/auth/v1/user",{headers:{apikey:pub,Authorization:authorization}});if(!r.ok)return null;const u=await r.json();return u&&u.id?{id:u.id,base,pub,authorization}:null}
+module.exports={encryptSecret,decryptSecret,json,authenticate};

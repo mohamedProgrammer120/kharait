@@ -82,3 +82,25 @@ Les cartes peuvent être sauvegardées dans Supabase. Les politiques Row Level S
 - Les modèles proposés dans l'interface ont été actualisés à partir des catalogues documentés des fournisseurs. Les identifiants peuvent toujours être remplacés manuellement, car leur disponibilité dépend du compte et du fournisseur.
 
 **À faire après déploiement :** exécuter à nouveau `supabase/schema.sql` dans SQL Editor. Ce script est conçu pour être relancé. Les appels réels des fournisseurs doivent être vérifiés avec des clés de test individuelles.
+
+
+## 8. حفظ مفاتيح الذكاء الاصطناعي لكل مستخدم
+
+يدعم Kharait الآن حفظ مفتاح كل مزوّد مرة واحدة في حساب المستخدم، ثم استخدامه تلقائياً عند إنشاء الخرائط.
+
+### إعداد مطلوب مرة واحدة في Vercel
+أضف متغير البيئة `KHARAIT_CREDENTIALS_ENCRYPTION_KEY` بقيمة عشوائية Base64 تمثل 32 بايت. أنشئها محلياً بالأمر:
+
+```bash
+openssl rand -base64 32
+```
+
+لا تضع هذه القيمة في GitHub أو Supabase أو المتصفح، ولا تغيّرها بعد حفظ مفاتيح المستخدمين؛ تغييرها يمنع فك تشفير المفاتيح القديمة. احتفظ بنسخة احتياطية آمنة منها.
+
+### ترحيل Supabase
+أعد تشغيل `supabase/schema.sql` في SQL Editor لإنشاء جدول `ai_credentials` وسياسات RLS. لا يحتوي الجدول إلا على النص المشفّر وبيانات IV ووسم GCM، وليس مفاتيح API الأصلية.
+
+### الاستخدام
+من نافذة توليد الخريطة، اختر المزوّد، أدخل المفتاح مرة واحدة واضغط «حفظ المفتاح بأمان». سيعرض Kharait حالة الحفظ دون إعادة المفتاح إلى المتصفح. يمكن حذف المفتاح المحفوظ من الزر نفسه. مفاتيح OpenRouter المستلمة عبر OAuth تُحفظ بالطريقة نفسها بعد الضغط على زر الحفظ.
+
+**تنبيه:** مفتاح التشفير الرئيسي على Vercel هو سر مركزي حساس؛ من يملكه مع صلاحية الوصول إلى قاعدة البيانات يستطيع فك تشفير المفاتيح. لا تسجّل المفاتيح أو النصوص المفكوكة في السجلات.
