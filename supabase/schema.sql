@@ -54,3 +54,23 @@ grant select, insert, update, delete on table public.lesson_maps to authenticate
 
 -- Ask PostgREST (Supabase Data API) to refresh its schema cache.
 notify pgrst, 'reload schema';
+
+
+-- Encrypted BYOK credentials. The encryption key exists only in Vercel environment variables.
+create table if not exists public.ai_credentials (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  provider text not null check (provider in ('gemini','groq','openrouter','openai','anthropic')),
+  key_ciphertext text not null,
+  key_iv text not null,
+  key_tag text not null,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, provider)
+);
+alter table public.ai_credentials enable row level security;
+drop policy if exists "Users can manage their own encrypted AI credentials" on public.ai_credentials;
+create policy "Users can manage their own encrypted AI credentials"
+  on public.ai_credentials for all to authenticated
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+revoke all on table public.ai_credentials from anon;
+grant select, insert, update, delete on table public.ai_credentials to authenticated;
+notify pgrst, 'reload schema';
