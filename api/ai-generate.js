@@ -81,10 +81,7 @@ export default async function handler(req, res) {
     const raw = typeof req.body === "string" ? req.body : JSON.stringify(req.body || {});
     if (Buffer.byteLength(raw, "utf8") > MAX_REQUEST_BYTES) return json(res, 413, { error: "Fichiers trop volumineux (maximum 3 Mo)." });
     const body = typeof req.body === "object" && req.body ? req.body : JSON.parse(raw);
-    const provider = body.provider, requestedModel = body.model, parts = body.parts;
-    // Redirect retired Gemini defaults sent by older browser tabs to the current stable Flash model.
-    const retiredGeminiModels = new Set(["gemini-2.5-flash", "gemini-2.5-flash-lite", "models/gemini-2.5-flash", "models/gemini-2.5-flash-lite"]);
-    const model = provider === "gemini" && retiredGeminiModels.has(requestedModel) ? "gemini-3.8-flash" : requestedModel;
+    const provider = body.provider, model = body.model, parts = body.parts;
     let key = req.headers["x-kharait-provider-key"];
     if (!key) {
       const saved = await fetch(user.base + "/rest/v1/ai_credentials?select=key_ciphertext,key_iv,key_tag&provider=eq." + encodeURIComponent(provider), {
@@ -134,8 +131,7 @@ export default async function handler(req, res) {
     }
     if (!upstream.ok) {
       const message = result.error?.message || result.message || "Le fournisseur IA a refusé la demande.";
-      const retiredModel = provider === "gemini" && /model.*(no longer available|not found|deprecated)|not supported for generatecontent/i.test(message);
-      return json(res, upstream.status === 429 ? 429 : upstream.status >= 500 ? 502 : 400, { error: retiredModel ? "Ce modèle Gemini n’est plus disponible. Choisissez gemini-3.8-flash dans la liste des modèles." : message, code: retiredModel ? "MODEL_UNAVAILABLE" : undefined });
+      return json(res, upstream.status === 429 ? 429 : upstream.status >= 500 ? 502 : 400, { error: message });
     }
     const text = extractText(result, provider);
     if (!text) return json(res, 422, { error: "Le fournisseur IA n'a renvoyé aucun contenu texte." });
