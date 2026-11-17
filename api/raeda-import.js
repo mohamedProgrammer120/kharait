@@ -8,6 +8,7 @@ import { authenticate, json } from "./_lib/credentials.js";
 
 const RAEDA_ORIGIN = "https://raeda.alistic.net";
 const MAX_FILE_BYTES = 4.2 * 1024 * 1024; // limite des réponses des fonctions Vercel (~4,5 Mo)
+const DOWNLOAD_TIMEOUT_MS = Number(process.env.RAEDA_DOWNLOAD_TIMEOUT_MS) || 50_000; // doit rester sous maxDuration (60 s) dans vercel.json
 const WINDOW_MS = 60_000;
 const MAX_CALLS = 40;
 const SUBJECTS = new Set(["all", "ar", "fr", "math", "sci"]);
@@ -32,6 +33,43 @@ async function raedaFetch(path) {
   });
   if (new URL(response.url).origin !== RAEDA_ORIGIN) throw new Error("REDIRECT_OFF_HOST");
   return response;
+}
+
+const TOO_LARGE = "Fichier trop volumineux pour l'import automatique (max. ~4 Mo). Téléchargez-le puis ajoutez-le manuellement.";
+
+// Téléchargement en flux : on s'arrête dès que la taille limite est dépassée, et en cas de délai
+// dépassé le message précise si Raeda n'a rien répondu ou si le transfert était juste trop lent.
+async function downloadPptx(course) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
+  const started = Date.now();
+  let phase = "headers", received = 0;
+  try {
+    const response = await fetch(`${RAEDA_ORIGIN}/download.php?course=${encodeURIComponent(course)}`, {
+      headers: { "User-Agent": "Kharait-importer/1.0 (+https://kharait.vercel.app)", Accept: "*/*", Referer: RAEDA_ORIGIN + "/slides.php" },
+      signal: controller.signal
+    });
+    if (new URL(response.url).origin !== RAEDA_ORIGIN) return { status: 502, error: "Redirection inattendue depuis Raeda." };
+    if (!response.ok) return { status: 502, error: `Raeda a répondu ${response.status}.` };
+    phase = "body";
+    if (Number(response.headers.get("content-length") || 0) > MAX_FILE_BYTES) { controller.abort(); return { status: 413, error: TOO_LARGE }; }
+    const chunks = [];
+    for await (const chunk of response.body) {
+      received += chunk.length;
+      if (received > MAX_FILE_BYTES) { controller.abort(); return { status: 413, error: TOO_LARGE }; }
+      chunks.push(chunk);
+    }
+    return { buffer: Buffer.concat(chunks) };
+  } catch (e) {
+    if (controller.signal.aborted) {
+      const secs = Math.round((Date.now() - started) / 1000);
+      const detail = phase === "headers" ? "aucune réponse reçue" : `${Math.round(received / 1024)} Ko reçus seulement`;
+      return { status: 504, error: `Raeda n'a pas répondu à temps (${detail} en ${secs} s).` };
+    }
+    return { status: 502, error: "Impossible de joindre Raeda." };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function parseCourse(code) {
@@ -79,12 +117,9 @@ export default async function handler(req, res) {
     if (q.action === "file") {
       const course = String(q.course || "").toLowerCase();
       if (!/^[a-z0-9-]{3,60}$/.test(course)) return json(res, 400, { error: "Code de cours invalide." });
-      const file = await raedaFetch(`/download.php?course=${encodeURIComponent(course)}`);
-      if (!file.ok) return json(res, 502, { error: `Raeda a répondu ${file.status}.` });
-      const declared = Number(file.headers.get("content-length") || 0);
-      if (declared > MAX_FILE_BYTES) return json(res, 413, { error: "Fichier trop volumineux pour l'import automatique (max. ~4 Mo). Téléchargez-le puis ajoutez-le manuellement." });
-      const buffer = Buffer.from(await file.arrayBuffer());
-      if (buffer.length > MAX_FILE_BYTES) return json(res, 413, { error: "Fichier trop volumineux pour l'import automatique (max. ~4 Mo). Téléchargez-le puis ajoutez-le manuellement." });
+      const result = await downloadPptx(course);
+      if (result.error) return json(res, result.status, { error: result.error });
+      const buffer = result.buffer;
       if (buffer.length < 4 || buffer[0] !== 0x50 || buffer[1] !== 0x4b) return json(res, 502, { error: "Raeda n'a pas renvoyé un fichier PPTX valide." });
       res.status(200);
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.presentationml.presentation");
