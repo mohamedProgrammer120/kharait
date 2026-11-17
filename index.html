@@ -262,7 +262,7 @@ dialog::backdrop{background:#08162dbb;backdrop-filter:blur(7px)}
 <script src="supabase-config.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-const MODEL_OPTIONS={gemini:['gemini-3.8-flash','gemini-3.7-flash','gemini-3.6-flash','gemini-3.5-flash-lite'],groq:['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.3-70b-versatile'],openrouter:['google/gemini-3.8-flash','openai/gpt-4.1-mini','anthropic/claude-sonnet-5-5'],openai:['gpt-4.1-mini','gpt-4.1'],anthropic:['claude-sonnet-5-5','claude-opus-5-5','claude-haiku-5-5']};
+const MODEL_OPTIONS={gemini:['gemini-3.8-flash','gemini-3.7-flash','gemini-3.6-flash','gemini-3.5-flash','gemini-3.5-flash-lite','gemini-3.1-flash-lite'],groq:['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.3-70b-versatile','llama-3.1-8b-instant'],openrouter:['google/gemini-3.8-flash','anthropic/claude-sonnet-5-5','openai/gpt-6.1-sol'],openai:['gpt-6-luna','gpt-6.1-terra','gpt-6.1-sol','gpt-6-astra'],anthropic:['claude-haiku-5-5','claude-sonnet-5-5','claude-opus-5-5','claude-fable-5-2']};
 const PROVIDER_HINTS={gemini:'Google AI Studio : clé API personnelle.',groq:'Groq Console : clé API personnelle. Les modèles disponibles dépendent de ton compte.',openrouter:'OpenRouter : clé personnelle ou connexion OAuth sans copier-coller.',openai:'OpenAI Platform : clé API personnelle (facturation API séparée de ChatGPT Plus).',anthropic:'Anthropic Console : clé API personnelle.'};
 let aiKeyMemory='';
 const provider=()=>$('aiProvider').value;
