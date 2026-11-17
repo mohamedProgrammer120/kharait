@@ -60,11 +60,19 @@ export default async function handler(req, res) {
   const q = req.query || Object.fromEntries(new URL(req.url, "http://x").searchParams);
   try {
     if (q.action === "list") {
-      const sem = String(q.sem || ""), seance = String(q.seance || ""), subject = String(q.subject || "all");
-      if (!/^sem[1-9]$/.test(sem) || !/^[1-9]$/.test(seance) || !SUBJECTS.has(subject)) return json(res, 400, { error: "Paramètres invalides." });
-      const page = await raedaFetch(`/slides.php?sem=${sem}&seance=${seance}&subject=${subject}&view=table`);
+      const sem = String(q.sem || "all"), seance = String(q.seance || "all"), subject = String(q.subject || "all");
+      if (!(sem === "all" || /^sem[1-9]$/.test(sem)) || !(seance === "all" || /^[1-9]$/.test(seance)) || !SUBJECTS.has(subject)) return json(res, 400, { error: "Paramètres invalides." });
+      const params = new URLSearchParams({ subject, view: "table" });
+      if (sem !== "all") params.set("sem", sem);
+      if (seance !== "all") params.set("seance", seance);
+      const page = await raedaFetch(`/slides.php?${params}`);
       if (!page.ok) return json(res, 502, { error: `Raeda a répondu ${page.status}.` });
-      const courses = extractCourseCodes(await page.text()).map(parseCourse);
+      // Raeda renvoie parfois tout le catalogue quel que soit le filtre demandé : on filtre donc nous-mêmes.
+      const courses = extractCourseCodes(await page.text()).map(parseCourse).filter(c =>
+        (subject === "all" || c.subject === subject) &&
+        (sem === "all" || c.sem === sem.slice(3)) &&
+        (seance === "all" || c.seance === seance)
+      ).sort((a, b) => (Number(a.sem) - Number(b.sem)) || (Number(a.phase) - Number(b.phase)) || (Number(a.seance) - Number(b.seance)) || a.subject.localeCompare(b.subject) || a.level.localeCompare(b.level));
       return json(res, 200, { courses });
     }
 
