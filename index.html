@@ -425,14 +425,14 @@ $('raedaBody').onclick=async e=>{
     catch(err){rSt(err.message,1)}finally{b.disabled=false}}
   if(id==='rGet'){
     const codes=[...document.querySelectorAll('.rck:checked')].map(x=>x.value);if(!codes.length)return rSt(rL('اختر حصة واحدة على الأقل.','Sélectionnez au moins une séance.'),1);
-    b.disabled=true;const bad=[];let ok=0;
+    b.disabled=true;const bad=[];let ok=0,slim=0;
     for(const [i,code] of codes.entries()){
       const name=code.toUpperCase().replace(/-/g,'_')+'.pptx';
       if(files.some(f=>f.name===name)){ok++;continue}
       rSt(rL('جارٍ الاستيراد ','Import ')+(i+1)+'/'+codes.length+' …');
-      try{const blob=await(await raedaCall({action:'file',course:code})).blob();addF([new File([blob],name,{type:blob.type})]);ok++}
+      try{const r=await raedaCall({action:'file',course:code}),blob=await r.blob();if(r.headers.get('X-Kharait-Slimmed'))slim++;addF([new File([blob],name,{type:blob.type})]);ok++}
       catch(err){bad.push(name+' : '+err.message)}}
-    rSt(rL('تم استيراد ','Importé : ')+ok+'/'+codes.length+(bad.length?' — '+bad.join(' | '):''),bad.length>0);b.disabled=false}
+    rSt(rL('تم استيراد ','Importé : ')+ok+'/'+codes.length+(slim?' — '+rL('حُذفت الصور الكبيرة من '+slim+' ملف لتقليل الحجم (النص محفوظ).','images volumineuses retirées de '+slim+' fichier(s) pour réduire la taille (texte conservé).'):'')+(bad.length?' — '+bad.join(' | '):''),bad.length>0);b.disabled=false}
 };
 
 

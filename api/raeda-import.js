@@ -4,10 +4,13 @@
 //   GET /api/raeda-import?action=file&course=ne-ar-n1-p2-sem4-s1      → fichier PPTX (binaire)
 // Le serveur ne contacte que l'hôte Raeda ci-dessous, avec des paramètres validés strictement,
 // et ne télécharge qu'un fichier à la fois, à la demande de l'utilisateur (pas d'exploration en masse).
+import JSZip from "jszip";
 import { authenticate, json } from "./_lib/credentials.js";
 
 const RAEDA_ORIGIN = "https://raeda.alistic.net";
 const MAX_FILE_BYTES = 4.2 * 1024 * 1024; // limite des réponses des fonctions Vercel (~4,5 Mo)
+const SLIM_TARGET_BYTES = 3.9 * 1024 * 1024; // taille visée après allègement
+const MAX_SOURCE_BYTES = 40 * 1024 * 1024; // taille maximale acceptée depuis Raeda avant allègement
 const DOWNLOAD_TIMEOUT_MS = Number(process.env.RAEDA_DOWNLOAD_TIMEOUT_MS) || 50_000; // doit rester sous maxDuration (60 s) dans vercel.json
 const WINDOW_MS = 60_000;
 const MAX_CALLS = 40;
@@ -35,7 +38,32 @@ async function raedaFetch(path) {
   return response;
 }
 
-const TOO_LARGE = "Fichier trop volumineux pour l'import automatique (max. ~4 Mo). Téléchargez-le puis ajoutez-le manuellement.";
+const TOO_LARGE = "Fichier trop volumineux pour l'import automatique (max. 40 Mo). Téléchargez-le puis ajoutez-le manuellement.";
+const CANNOT_SLIM = "Même sans ses grosses images, ce fichier dépasse la limite de ~4 Mo. Téléchargez-le puis ajoutez-le manuellement.";
+
+// La limite de ~4,5 Mo des réponses Vercel empêche de renvoyer un gros PPTX tel quel. Kharait n'a besoin
+// que du texte (et de quelques petites images) : on retire donc les vidéos, objets intégrés et les plus
+// grosses images jusqu'à passer sous la limite. Le fichier renvoyé n'est lu que par Kharait.
+async function slimPptx(buffer) {
+  if (buffer.length <= MAX_FILE_BYTES) return { buffer, slimmed: false };
+  const zip = await JSZip.loadAsync(buffer);
+  const images = [];
+  for (const [name, entry] of Object.entries(zip.files)) {
+    if (entry.dir) continue;
+    if (/^ppt\/media\/.+\.(png|jpe?g|webp)$/i.test(name)) images.push({ name, size: (await entry.async("uint8array")).length });
+    else if (/^ppt\/(media|embeddings)\//i.test(name) || /^docProps\/thumbnail/i.test(name)) zip.remove(name);
+  }
+  images.sort((a, b) => b.size - a.size); // du plus gros au plus petit
+  const generate = () => zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 6 } });
+  let out = await generate();
+  while (out.length > SLIM_TARGET_BYTES && images.length) {
+    const drop = images.splice(0, Math.max(1, Math.ceil(images.length / 3)));
+    drop.forEach(img => zip.remove(img.name));
+    out = await generate();
+  }
+  if (out.length > MAX_FILE_BYTES) return { error: CANNOT_SLIM, status: 413 };
+  return { buffer: out, slimmed: true };
+}
 
 // Téléchargement en flux : on s'arrête dès que la taille limite est dépassée, et en cas de délai
 // dépassé le message précise si Raeda n'a rien répondu ou si le transfert était juste trop lent.
@@ -43,7 +71,7 @@ async function downloadPptx(course) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
   const started = Date.now();
-  let phase = "headers", received = 0;
+  let phase = "headers", received = 0, tooLarge = false;
   try {
     const response = await fetch(`${RAEDA_ORIGIN}/download.php?course=${encodeURIComponent(course)}`, {
       headers: { "User-Agent": "Kharait-importer/1.0 (+https://kharait.vercel.app)", Accept: "*/*", Referer: RAEDA_ORIGIN + "/slides.php" },
@@ -52,15 +80,17 @@ async function downloadPptx(course) {
     if (new URL(response.url).origin !== RAEDA_ORIGIN) return { status: 502, error: "Redirection inattendue depuis Raeda." };
     if (!response.ok) return { status: 502, error: `Raeda a répondu ${response.status}.` };
     phase = "body";
-    if (Number(response.headers.get("content-length") || 0) > MAX_FILE_BYTES) { controller.abort(); return { status: 413, error: TOO_LARGE }; }
+    if (Number(response.headers.get("content-length") || 0) > MAX_SOURCE_BYTES) { controller.abort(); return { status: 413, error: TOO_LARGE }; }
     const chunks = [];
     for await (const chunk of response.body) {
       received += chunk.length;
-      if (received > MAX_FILE_BYTES) { controller.abort(); return { status: 413, error: TOO_LARGE }; }
+      if (received > MAX_SOURCE_BYTES) { tooLarge = true; break; }
       chunks.push(chunk);
     }
+    if (tooLarge) return { status: 413, error: TOO_LARGE };
     return { buffer: Buffer.concat(chunks) };
   } catch (e) {
+    if (tooLarge) return { status: 413, error: TOO_LARGE };
     if (controller.signal.aborted) {
       const secs = Math.round((Date.now() - started) / 1000);
       const detail = phase === "headers" ? "aucune réponse reçue" : `${Math.round(received / 1024)} Ko reçus seulement`;
@@ -119,8 +149,11 @@ export default async function handler(req, res) {
       if (!/^[a-z0-9-]{3,60}$/.test(course)) return json(res, 400, { error: "Code de cours invalide." });
       const result = await downloadPptx(course);
       if (result.error) return json(res, result.status, { error: result.error });
-      const buffer = result.buffer;
-      if (buffer.length < 4 || buffer[0] !== 0x50 || buffer[1] !== 0x4b) return json(res, 502, { error: "Raeda n'a pas renvoyé un fichier PPTX valide." });
+      if (result.buffer.length < 4 || result.buffer[0] !== 0x50 || result.buffer[1] !== 0x4b) return json(res, 502, { error: "Raeda n'a pas renvoyé un fichier PPTX valide." });
+      const slim = await slimPptx(result.buffer);
+      if (slim.error) return json(res, slim.status, { error: slim.error });
+      const buffer = slim.buffer;
+      if (slim.slimmed) res.setHeader("X-Kharait-Slimmed", "1");
       res.status(200);
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.presentationml.presentation");
       res.setHeader("Cache-Control", "no-store, max-age=0");
