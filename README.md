@@ -1,106 +1,58 @@
 # Kharait — Générateur de cartes mentales de séance
 
-Application web HTML/CSS/JavaScript bilingue (arabe/français) : analyse des documents de séance, création de cartes mentales modifiables, impression et export PNG/PDF. Authentification Supabase et BYOK (Bring Your Own Key).
+Application web HTML/CSS/JavaScript bilingue (arabe/français) pour analyser des documents pédagogiques, créer des cartes mentales modifiables, organiser les étapes et durées, puis exporter en PNG/PDF ou imprimer en A4.
 
-## 1. Configuration Supabase
+## Architecture
 
-1. Créer un projet Supabase.
-2. Exécuter `supabase/schema.sql` dans SQL Editor.
-3. Activer Email dans Authentication → Providers.
-4. Renseigner l'URL et la clé Publishable du projet dans `supabase-config.js`.
-5. Dans Vercel, ajouter `SUPABASE_URL` et `SUPABASE_PUBLISHABLE_KEY` (la clé Publishable est prévue pour être exposée au navigateur ; jamais la clé Secret/service_role).
-6. Ajouter le domaine Vercel aux URL autorisées dans Supabase Auth.
+- Frontend statique : `index.html` (pas de framework/build requis).
+- Backend serverless Vercel : `api/ai-generate.js` et `api/ai-credentials.js`.
+- Authentification et stockage cloud : Supabase Auth + Postgres avec RLS.
+- IA BYOK : Gemini, Groq, OpenRouter, OpenAI et Anthropic. Chaque utilisateur utilise sa propre clé.
 
-L'écran de connexion est obligatoire. L'API serveur vérifie le jeton Supabase avant chaque génération IA.
+## Configuration Supabase et Vercel
 
-## 2. BYOK : chaque utilisateur utilise son propre fournisseur IA
+1. Créez un projet Supabase et exécutez `supabase/schema.sql` dans SQL Editor.
+2. Activez Email dans Authentication → Providers.
+3. Configurez `supabase-config.js` avec l'URL du projet et la clé publique Publishable/anon. N'y placez jamais la clé Secret/service_role.
+4. Dans Vercel, ajoutez `SUPABASE_URL` et `SUPABASE_PUBLISHABLE_KEY`.
+5. Générez une clé de chiffrement de 32 octets en Base64 avec `openssl rand -base64 32` (ou Node.js).
+6. Ajoutez cette valeur à Vercel sous `KHARAIT_CREDENTIALS_ENCRYPTION_KEY`. Variable serveur uniquement, sans préfixe `NEXT_PUBLIC_`.
+7. Ajoutez le domaine de production et les URLs de preview nécessaires dans Supabase Auth → URL Configuration, puis redéployez.
 
-Kharait ne nécessite plus de clé Gemini commune ni de clé IA appartenant au propriétaire du site. Chaque utilisateur ouvre **Générer une carte**, choisit son fournisseur, puis :
-- colle sa propre clé API ; ou
-- utilise **Connecter OpenRouter (OAuth)** pour autoriser son compte OpenRouter via PKCE.
+**Sauvegardez la clé de chiffrement hors de Vercel et conservez-la stable.** Si elle est perdue ou remplacée sans migration des secrets, les clés IA déjà enregistrées ne pourront plus être déchiffrées.
 
-Fournisseurs proposés :
-- Google Gemini
-- Groq
-- OpenRouter
-- OpenAI
-- Anthropic Claude
+## Fournisseurs et clés IA personnelles
 
-Les clés sont conservées uniquement dans la mémoire de la page active. Elles ne sont ni écrites dans localStorage/sessionStorage, ni envoyées à Supabase, ni enregistrées dans les cartes. Elles sont transmises en HTTPS dans un en-tête dédié au proxy Vercel, utilisées pour l'appel au fournisseur, puis abandonnées. Fermer ou recharger l'onglet efface la clé de la mémoire ; l'utilisateur doit la ressaisir ou reconnecter OpenRouter.
+Dans « Générer une carte » :
+- Choisissez Gemini, Groq, OpenRouter, OpenAI ou Anthropic.
+- Collez votre clé personnelle puis cliquez sur « حفظ المفتاح بأمان » pour l'enregistrer.
+- La clé est chiffrée côté serveur avec AES-256-GCM avant son insertion dans `ai_credentials`.
+- L'API ne renvoie jamais la clé déchiffrée au navigateur. Elle renvoie uniquement la liste des fournisseurs enregistrés.
+- La génération récupère et déchiffre la clé côté serveur pour l'utilisateur authentifié. La clé n'est pas intégrée aux cartes.
+- La suppression d'une clé s'effectue depuis le même écran. OpenRouter OAuth utilise PKCE.
 
-**OAuth :** OpenRouter prend en charge la connexion OAuth PKCE sans demander le mot de passe OpenRouter à Kharait. Les autres fournisseurs sont proposés par clé API personnelle ; ils n'ont pas de flux OAuth générique intégré dans cette version.
+Chaque fournisseur facture directement son propre compte. Un abonnement ChatGPT Plus ne comprend pas automatiquement des crédits API OpenAI. La disponibilité des modèles dépend du compte, de la région, du quota et des conditions du fournisseur ; les suggestions intégrées sont des identifiants de départ, pas une garantie d'accès. L'utilisateur peut saisir un autre ID disponible dans son compte.
 
-**Fichiers :** Gemini et Anthropic acceptent les documents PDF transmis ici. Pour OpenAI, Groq et OpenRouter, l'API commune transmet texte et images ; les PDF directs ne sont pas pris en charge par cette route et l'interface renverra un message explicatif. Les modèles vision dépendent du fournisseur et du modèle choisis.
+## Sécurité et confidentialité
 
-Chaque fournisseur facture directement son propre utilisateur selon son compte, son quota et ses conditions. Un abonnement ChatGPT Plus, par exemple, ne donne pas automatiquement des crédits API OpenAI.
+- Les routes IA vérifient le jeton Supabase côté serveur.
+- Les clés personnelles sont chiffrées avant stockage et isolées par utilisateur via RLS.
+- Les clés ne doivent jamais être placées dans le dépôt, les logs, les cartes ou les variables publiques.
+- Les réponses API utilisent `Cache-Control: no-store`.
+- Le service worker ne met en cache ni `/api/*`, ni les requêtes non statiques, ni les réponses marquées `private/no-store`. Seule l'enveloppe statique de l'application peut être disponible hors ligne.
+- La limite de débit de l'API est en mémoire et reste best-effort entre instances serverless ; pour une application publique à grande échelle, utiliser un compteur partagé (Redis/Upstash).
 
-## 3. Sécurité
+## Fichiers et limites
 
-- `api/ai-generate.js` vérifie la session Supabase, limite la taille, valide les formats et utilise des URL fournisseurs fixes.
-- La clé utilisateur arrive dans l'en-tête `X-Kharait-Provider-Key`, pas dans le JSON du corps.
-- Aucune clé fournisseur n'est enregistrée côté serveur ou dans la base de données par Kharait.
-- Les réponses API sont marquées `no-store`.
-- L'ancienne route `/api/generate` (clé Gemini partagée) est désactivée.
-- La limite de débit en mémoire est best-effort entre instances serverless ; utiliser Redis partagé pour un service public à grande échelle.
+- Gemini et Anthropic acceptent les PDF dans l'adaptateur actuel.
+- OpenAI, Groq et OpenRouter reçoivent texte et images ; les PDF directs ne sont pas pris en charge par cette route.
+- Les fichiers volumineux peuvent être envoyés directement à l'API Files de Gemini par le navigateur avec la clé personnelle de l'utilisateur, selon les limites du fournisseur.
+- Les PPTX/DOCX sont extraits côté navigateur ; le contenu texte et les images compressées sont transmis au modèle.
 
-Important : comme pour toute application web, un utilisateur peut voir sa propre clé dans les outils développeur pendant qu'il l'utilise. Ne pas utiliser un ordinateur partagé non fiable et révoquer une clé si elle est suspectée compromise.
+## Vérifications avant mise en production
 
-## 4. Stockage cloud des cartes
-
-Les cartes peuvent être sauvegardées dans Supabase. Les politiques Row Level Security de `supabase/schema.sql` isolent les données de chaque utilisateur. Les clés IA ne sont jamais incluses dans les cartes sauvegardées.
-
-## 5. Fichiers importants
-
-- `index.html` : interface, connexion, choix du fournisseur, saisie de clé et OAuth OpenRouter.
-- `api/ai-generate.js` : passerelle BYOK authentifiée vers les cinq fournisseurs.
-- `api/generate.js` : ancienne route désactivée.
-- `supabase/schema.sql` : table de cartes et politiques RLS.
-- `supabase-config.js` : URL Supabase et clé publique Publishable.
-- `.env.example` : variables serveur Supabase uniquement.
-- `vercel.json` : en-têtes HTTP.
-
-## 6. Déploiement et tests
-
-1. Importer le dépôt dans Vercel (branche `main`, preset « Other », sans commande de build).
-2. Ajouter dans Vercel les variables `SUPABASE_URL` et `SUPABASE_PUBLISHABLE_KEY` (Settings → Environment Variables), puis redéployer.
-3. Dans Supabase : exécuter `supabase/schema.sql`, activer Email (Authentication → Providers) et ajouter `https://kharait.vercel.app` dans Authentication → URL Configuration.
-4. Créer un compte, coller sa propre clé API et générer une carte avec un PDF léger (≤ 3 Mo).
-
-**Gros PDF avec Gemini :** au-delà de 2,3 Mo, le navigateur téléverse le PDF d'origine (jusqu'à 50 Mo) directement vers l'API Fichiers de Gemini avec la clé de l'utilisateur, sans passer par Vercel ; le fichier est supprimé chez Google à la fin de la génération (sinon après 48 h). Si l'envoi direct échoue, le PDF est converti en images compressées.
-
-**Limites :** une requête vers l'API ne doit pas dépasser ~4 Mo (limite Vercel). Les PPTX/DOCX sont lus dans le navigateur (texte, notes, SmartArt) : seul le texte et au plus 8 images compressées sont envoyés, quelle que soit la taille du fichier. Le nom de fichier de type `NE_AR_N3_P2_SEM3_S6` fournit niveau, phase, semaine et séance quand le document ne les contient pas.
-
-**Testé :** la passerelle `/api/ai-generate` (authentification, refus des PDF pour OpenAI/Groq/OpenRouter, limite de débit, clé en en-tête uniquement) avec des fournisseurs simulés. Les appels réels aux cinq fournisseurs restent à valider avec les clés de leurs utilisateurs.
-
-
-## 7. Audit de sécurité et confidentialité (novembre 2026)
-
-- Le navigateur ne partage plus les cartes locales ni les clés IA entre deux comptes utilisés sur le même appareil : à la déconnexion ou au changement de compte, l'état privé local et la clé de fournisseur en mémoire sont effacés.
-- Si la table `lesson_maps` est absente du cache PostgREST, l'interface affiche désormais la marche à suivre au lieu d'un message technique brut.
-- Le schéma accorde explicitement les opérations de cartes au rôle `authenticated`, retire les droits du rôle `anon` et demande le rechargement du cache PostgREST.
-- Les délais d'attente couvrent désormais aussi la lecture de la réponse du fournisseur, et le registre de limitation de débit nettoie ses anciennes entrées.
-- Les modèles proposés dans l'interface ont été actualisés à partir des catalogues documentés des fournisseurs. Les identifiants peuvent toujours être remplacés manuellement, car leur disponibilité dépend du compte et du fournisseur.
-
-**À faire après déploiement :** exécuter à nouveau `supabase/schema.sql` dans SQL Editor. Ce script est conçu pour être relancé. Les appels réels des fournisseurs doivent être vérifiés avec des clés de test individuelles.
-
-
-## 8. حفظ مفاتيح الذكاء الاصطناعي لكل مستخدم
-
-يدعم Kharait الآن حفظ مفتاح كل مزوّد مرة واحدة في حساب المستخدم، ثم استخدامه تلقائياً عند إنشاء الخرائط.
-
-### إعداد مطلوب مرة واحدة في Vercel
-أضف متغير البيئة `KHARAIT_CREDENTIALS_ENCRYPTION_KEY` بقيمة عشوائية Base64 تمثل 32 بايت. أنشئها محلياً بالأمر:
-
-```bash
-openssl rand -base64 32
-```
-
-لا تضع هذه القيمة في GitHub أو Supabase أو المتصفح، ولا تغيّرها بعد حفظ مفاتيح المستخدمين؛ تغييرها يمنع فك تشفير المفاتيح القديمة. احتفظ بنسخة احتياطية آمنة منها.
-
-### ترحيل Supabase
-أعد تشغيل `supabase/schema.sql` في SQL Editor لإنشاء جدول `ai_credentials` وسياسات RLS. لا يحتوي الجدول إلا على النص المشفّر وبيانات IV ووسم GCM، وليس مفاتيح API الأصلية.
-
-### الاستخدام
-من نافذة توليد الخريطة، اختر المزوّد، أدخل المفتاح مرة واحدة واضغط «حفظ المفتاح بأمان». سيعرض Kharait حالة الحفظ دون إعادة المفتاح إلى المتصفح. يمكن حذف المفتاح المحفوظ من الزر نفسه. مفاتيح OpenRouter المستلمة عبر OAuth تُحفظ بالطريقة نفسها بعد الضغط على زر الحفظ.
-
-**تنبيه:** مفتاح التشفير الرئيسي على Vercel هو سر مركزي حساس؛ من يملكه مع صلاحية الوصول إلى قاعدة البيانات يستطيع فك تشفير المفاتيح. لا تسجّل المفاتيح أو النصوص المفكوكة في السجلات.
+- Tester inscription, connexion, déconnexion et changement de compte sur un navigateur partagé.
+- Tester sauvegarde, chargement, suppression d'une clé personnelle pour chaque fournisseur.
+- Tester la génération avec au moins un modèle actif par fournisseur et un PDF pour Gemini/Anthropic.
+- Tester sauvegarde cloud des cartes, ouverture depuis un autre appareil, export PNG/PDF et impression A4.
+- Vérifier dans DevTools → Application → Cache Storage qu'aucune route API ou donnée de compte n'est mise en cache.

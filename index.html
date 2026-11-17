@@ -120,6 +120,68 @@ body:not(.auth-ok)>:not(#authGate):not(script){visibility:hidden;pointer-events:
 
 #aiKey{width:100%;direction:ltr;text-align:left;padding:11px;border:1px solid #ccd5e5;border-radius:10px;background:#fff;color:#1d2a44;font-family:monospace}
 #openRouterConnect[hidden]{display:none}
+
+/* ===== KHARAIT PREMIUM REFRESH — application chrome only; lesson canvas stays print-safe ===== */
+:root{--bg:#f3f6fc;--ink:#17243d;--ac:#274b83;--mut:#687895;--gold:#d7a83e;--surface:#ffffff;--line:#e2e8f2}
+body{min-height:100vh;background:radial-gradient(ellipse at 8% 0%,#dce8ff 0,transparent 34%),radial-gradient(ellipse at 94% 12%,#f8e9c9 0,transparent 28%),linear-gradient(180deg,#f7f9fd 0%,#edf2fa 100%);color:var(--ink)}
+header{background:linear-gradient(112deg,#101b33 0%,#172d53 48%,#244779 100%);border-bottom:1px solid #ffffff20;box-shadow:0 14px 34px #14284a30;padding:14px 0 13px;backdrop-filter:blur(18px)}
+header h1{max-width:1440px;margin:0 auto;padding:3px 22px 13px;font-size:clamp(18px,2vw,24px);letter-spacing:.1px;gap:12px}
+header h1:before{content:"✦";display:grid;place-items:center;width:38px;height:38px;border-radius:13px;background:linear-gradient(145deg,#f8d98b,#c9962d);color:#17243d;box-shadow:0 6px 18px #d7a83e44;font-size:22px}
+#bar{max-width:1440px;margin:0 auto;padding:4px 20px 2px;gap:9px;justify-content:flex-start}
+#bar button{min-height:42px;min-width:0;flex-direction:row;gap:8px;padding:9px 13px;border:1px solid #ffffff20;border-radius:13px;background:#ffffff0d;color:#eef4ff;font-size:12px;white-space:nowrap;box-shadow:inset 0 1px #ffffff0b;transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease}
+#bar button i{font-size:16px}
+#bar button:hover{transform:translateY(-2px);background:#ffffff1b;border-color:#ffffff50;box-shadow:0 8px 18px #07152a38}
+#bar button.p{background:linear-gradient(135deg,#f6d889,#d5a13a);border-color:#f7dfa0;color:#17243d;box-shadow:0 7px 18px #d7a83e3d}
+#bar button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #e5b84d;outline-offset:3px}
+#stage{max-width:1480px;margin:26px auto 0;padding:24px 18px 46px;border:1px solid #ffffffb8;border-radius:26px;background:#ffffff9c;box-shadow:0 22px 60px #263b5d12;backdrop-filter:blur(12px)}
+#tag{background:#fff;border:1px solid #e4eaf4;color:#52627c;padding:7px 15px;border-radius:999px;box-shadow:0 4px 14px #243b5d0c;font-weight:650}
+#zw{max-width:100%}
+button{border-radius:12px;box-shadow:0 3px 10px #17243d10}
+button:active{transform:translateY(1px)}
+dialog{border:1px solid #ffffffd9;border-radius:24px;background:#fbfcff;box-shadow:0 28px 90px #08162e55}
+dialog::backdrop{background:#08162dbb;backdrop-filter:blur(7px)}
+.mh{background:linear-gradient(125deg,#101d38,#244b80 72%,#315f99);padding:21px 24px;position:relative;overflow:hidden}
+.mh:after{content:"";position:absolute;width:180px;height:180px;border:1px solid #ffffff22;border-radius:50%;inset-inline-end:-65px;top:-95px;box-shadow:0 0 0 24px #ffffff08,0 0 0 48px #ffffff05}
+.mh h2{font-size:20px;letter-spacing:.1px}.mh p{font-size:12px;line-height:1.7}
+.m{padding:22px 24px 24px;gap:17px}
+.sec{gap:8px}.sec>.l{font-size:13px;color:#273b5b}.sec>.l i{background:linear-gradient(145deg,#244b80,#142743);box-shadow:0 3px 8px #1c3b6730}
+.m input[type=password],.m input[type=text],.m select,.m textarea,#aiKey{border:1px solid #d9e2f0;border-radius:13px;background:#fff;padding:12px 13px;min-height:44px;box-shadow:inset 0 1px 2px #17243d08;transition:border-color .2s,box-shadow .2s}
+.m input:focus,.m select:focus,.m textarea:focus,#aiKey:focus{border-color:#6b91c6;box-shadow:0 0 0 4px #3d70b51a;background:#fff}
+#dz{border:2px dashed #a9bbd5;border-radius:18px;padding:24px 18px;background:linear-gradient(145deg,#f7faff,#eef4fc);color:#536985}
+#dz b{font-size:32px;margin-bottom:6px}
+#dz:hover,#dz.on{border-color:#4976b4;background:#eaf2ff;color:#214b82}
+#bGo{border:0;border-radius:14px;background:linear-gradient(120deg,#f3d27c,#d6a13a);color:#18243a;box-shadow:0 9px 22px #d6a13a3d;font-weight:800}
+#bGo:hover{filter:brightness(1.035);transform:translateY(-1px)}
+#st{padding:3px 2px;line-height:1.7}
+#savedKeyStatus,#providerHint{padding:9px 11px;border-radius:11px;background:#f0f5fc;border:1px solid #e1e9f5;color:#526985!important}
+#authGate{background:radial-gradient(ellipse at 18% 15%,#466ba6 0,transparent 32%),radial-gradient(ellipse at 90% 85%,#b78a3a55 0,transparent 30%),linear-gradient(135deg,#091326,#14294c 58%,#1c3c68);backdrop-filter:blur(8px)}
+.auth-card{width:min(440px,100%);padding:34px;border:1px solid #ffffffc9;border-radius:28px;background:linear-gradient(150deg,#ffffff,#f4f7fc);box-shadow:0 35px 100px #020a18a3;gap:15px}
+.auth-logo{width:66px;height:66px;margin:0 auto 2px;display:grid;place-items:center;border-radius:21px;background:linear-gradient(145deg,#f5d98e,#d2a13f);box-shadow:0 10px 28px #d3a13f55;font-size:34px}
+.auth-card h1{font-size:23px;color:#172a49}.auth-card p{line-height:1.8}
+.auth-card input{min-height:46px;border:1px solid #d9e2f0;border-radius:13px;background:#fff}
+.auth-card input:focus{outline:0;border-color:#7396c5;box-shadow:0 0 0 4px #3d70b51a}
+.auth-card button{min-height:46px;border-radius:13px}
+.auth-card button#authLogin{background:linear-gradient(120deg,#f3d27c,#d6a13a);color:#17243d;box-shadow:0 8px 20px #d6a13a35}
+.auth-card .auth-secondary{background:#eaf0f8;color:#233b5d}
+#dS,#dP,#dT,#dI,#dH,#dCloud,#dlg{max-width:calc(100vw - 18px)}
+#cloudList .chip,.chip{border:1px solid #e0e8f3;background:#f3f7fc}
+@media(min-width:760px){#bar{justify-content:center;flex-wrap:wrap;overflow:visible}#bar button{font-size:12px;padding:9px 13px}}
+@media(max-width:759px){
+ header{padding-top:10px}header h1{padding-inline:14px;font-size:17px}
+ #bar{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-inline:12px}
+ #bar button{min-height:40px;padding:8px 11px}
+ #stage{margin:14px 10px 0;padding:17px 8px 30px;border-radius:19px}
+ .m{padding:17px 15px 18px}
+ .auth-card{padding:25px 20px;border-radius:22px}
+ dialog{border-radius:19px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+@media print{
+ body{background:#fff!important}
+ #stage{max-width:none;margin:0;border:0;border-radius:0;padding:0!important;background:#fff;box-shadow:none}
+ #tag{display:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -200,7 +262,7 @@ body:not(.auth-ok)>:not(#authGate):not(script){visibility:hidden;pointer-events:
 <script src="supabase-config.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-const MODEL_OPTIONS={gemini:['gemini-3.8-flash','gemini-3.7-flash','gemini-3.6-flash','gemini-3.5-flash-lite'],groq:['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.3-70b-versatile'],openrouter:['google/gemini-3.8-flash','openai/gpt-4.1-mini','anthropic/claude-sonnet-5-5'],openai:['gpt-4.1-mini','gpt-4.1'],anthropic:['claude-sonnet-5-5','claude-opus-5-5','claude-haiku-5-5']};
+const MODEL_OPTIONS={gemini:['gemini-3.8-flash','gemini-3.7-flash','gemini-3.6-flash','gemini-3.5-flash','gemini-3.5-flash-lite','gemini-3.1-flash-lite'],groq:['openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.3-70b-versatile','llama-3.1-8b-instant'],openrouter:['google/gemini-3.8-flash','anthropic/claude-sonnet-5-5','openai/gpt-6.1-sol'],openai:['gpt-6-luna','gpt-6.1-terra','gpt-6.1-sol','gpt-6-astra'],anthropic:['claude-haiku-5-5','claude-sonnet-5-5','claude-opus-5-5','claude-fable-5-2']};
 const PROVIDER_HINTS={gemini:'Google AI Studio : clé API personnelle.',groq:'Groq Console : clé API personnelle. Les modèles disponibles dépendent de ton compte.',openrouter:'OpenRouter : clé personnelle ou connexion OAuth sans copier-coller.',openai:'OpenAI Platform : clé API personnelle (facturation API séparée de ChatGPT Plus).',anthropic:'Anthropic Console : clé API personnelle.'};
 let aiKeyMemory='';
 const provider=()=>$('aiProvider').value;
