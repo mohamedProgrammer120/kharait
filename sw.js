@@ -32,8 +32,7 @@ self.addEventListener('fetch', event => {
     fetch(request).then(response => {
       if (!response || !response.ok || response.type === 'opaque' ||
           /no-store|private/i.test(response.headers.get('Cache-Control') || '')) return response;
-      const copy = response.clone();
-      event.waitUntil(caches.open(CACHE).then(cache => cache.put(request, copy)));
+      await caches.open(CACHE).then(cache => cache.put(request, response.clone()));
       return response;
     }).catch(async () => {
       const cached = await caches.match(request);
