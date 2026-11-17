@@ -39,7 +39,7 @@ Chaque fournisseur facture directement son propre compte. Un abonnement ChatGPT 
 - Les clés personnelles sont chiffrées avant stockage et isolées par utilisateur via RLS.
 - Les clés ne doivent jamais être placées dans le dépôt, les logs, les cartes ou les variables publiques.
 - Les réponses API utilisent `Cache-Control: no-store`.
-- Le service worker ne met en cache ni `/api/*), ni les requêtes non statiques, ni les réponses marquées `private/no-store`. Seule l'enveloppe statique de l'application peut être disponible hors ligne.
+- Le service worker ne met en cache ni `/api/*`, ni les requêtes non statiques, ni les réponses marquées `private/no-store`. Seule l'enveloppe statique de l'application peut être disponible hors ligne.
 - La limite de débit de l'API est en mémoire et reste best-effort entre instances serverless ; pour une application publique à grande échelle, utiliser un compteur partagé (Redis/Upstash).
 
 ## Fichiers et limites
