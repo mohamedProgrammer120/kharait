@@ -250,6 +250,7 @@ dialog::backdrop{background:#08162dbb;backdrop-filter:blur(7px)}
       <div id="dz"><b>📄</b>اسحب الملفات هنا أو اضغط للاختيار<br><small>PDF · PPTX · DOCX · صور · نص · JSON</small></div>
       <input id="fi" type="file" multiple accept=".pdf,image/*,.txt,.md,.json,.pptx,.docx" hidden>
       <div id="fl"></div><label class="chk" id="sepw" hidden><input type="checkbox" id="sep" checked> خريطة مستقلة لكل ملف (ملفان ← خريطتان في ورقة واحدة)</label></div>
+    <details id="raeda"><summary id="raedaSum">استيراد الحصص تلقائيًا من Raeda</summary><div id="raedaBody"></div></details>
     <details><summary>خيارات إضافية</summary><label class="sec" style="margin-top:8px"><span class="l">المستوى الدراسي</span><select id="lvl"><option value="p">ابتدائي</option><option value="c">إعدادي</option><option value="h">ثانوي</option></select></label>
       <textarea id="note" rows="2" placeholder="ملاحظات (مثل: القسم المشترك مستويان 1 و2)"></textarea>
       <textarea id="js" rows="3" dir="ltr" placeholder='أو الصق JSON جاهزًا: {"معلومات_الدرس":{…}}'></textarea></details>
@@ -370,13 +371,66 @@ function applyLang(){const fr=LANG==='fr',h=document.documentElement;h.lang=LANG
   render(DATA);setLx(document.body.classList.contains('nolx'))}
 $('bLang').onclick=()=>{LANG=LANG==='fr'?'ar':'fr';ls.set('gm_lang',LANG);applyLang()};
 
-$('bOpen').onclick=()=>$('dlg').showModal();$('bX').onclick=()=>$('dlg').close();
+$('bOpen').onclick=()=>{$('dlg').showModal();raedaUi()};$('bX').onclick=()=>$('dlg').close();
 const showF=()=>{$('sepw').hidden=files.length<2;$('fl').innerHTML=files.map((f,i)=>`<span class="chip">${esc(f.name)} · ${(f.size/1048576).toFixed(1)} ${tr('م.ب')} <u data-i="${i}">✕</u></span>`).join('')};
 $('fl').onclick=e=>{const i=e.target.dataset.i;if(i!=null){files.splice(+i,1);showF()}};
 const addF=l=>{files.push(...l);showF()};
 $('dz').onclick=()=>$('fi').click();$('fi').onchange=e=>{addF([...e.target.files]);e.target.value=''};
 $('dz').ondragover=e=>{e.preventDefault();$('dz').classList.add('on')};$('dz').ondragleave=()=>$('dz').classList.remove('on');
 $('dz').ondrop=e=>{e.preventDefault();$('dz').classList.remove('on');addF([...e.dataTransfer.files])};
+
+/* ===== Import automatique des séances depuis Raeda (raeda.alistic.net) via /api/raeda-import ===== */
+const rL=(a,f)=>LANG==='fr'?f:a;
+const RSUB={all:['كل المواد','Toutes les matières'],ar:['العربية','Arabe'],fr:['الفرنسية','Français'],math:['الرياضيات','Mathématiques'],sci:['النشاط العلمي','Sciences']};
+let raedaList=[];
+const rSt=(m,bad)=>{const s=$('rSt');if(!s)return;s.textContent=m;s.style.color=bad?'#b3261e':'#6b7690'};
+function raedaUi(){
+  const prev=Object.fromEntries(['rSem','rDay','rSub','rLvl'].map(id=>[id,$(id)?$(id).value:null]));
+  const opt=(list,sel)=>list.map(([v,t])=>`<option value="${esc(v)}"${v===sel?' selected':''}>${esc(t)}</option>`).join('');
+  const nums=[1,2,3,4,5,6];
+  $('raedaSum').textContent=rL('استيراد الحصص تلقائيًا من Raeda','Importer automatiquement depuis Raeda');
+  $('raedaBody').innerHTML=
+    `<small style="display:block;color:#6b7690;font-size:12px;line-height:1.7;margin:6px 0">${esc(rL('اختر الأسبوع والحصة والمادة ثم اجلب القائمة، وسيُضاف كل ملف PPTX مختار إلى ملفات الحصة تلقائيًا.','Choisissez la semaine, la séance et la matière, récupérez la liste : chaque PPTX sélectionné est ajouté automatiquement aux fichiers de la séance.'))}</small>`+
+    `<div class="row"><select id="rSem">${opt(nums.map(n=>['sem'+n,rL('الأسبوع ','Semaine ')+n]),prev.rSem)}</select>`+
+    `<select id="rDay">${opt(nums.map(n=>[String(n),rL('الحصة ','Séance ')+n]),prev.rDay)}</select>`+
+    `<select id="rSub">${opt(Object.entries(RSUB).map(([v,t])=>[v,rL(t[0],t[1])]),prev.rSub)}</select>`+
+    `<select id="rLvl">${opt([['all',rL('كل المستويات','Tous niveaux')],...['n1','n2','n3','n4','n5','n6','n1-2','n3-4','n5-6'].map(v=>[v,v.toUpperCase()])],prev.rLvl)}</select></div>`+
+    `<div class="row"><button id="rList" type="button">${esc(rL('جلب القائمة','Récupérer la liste'))}</button><button id="rGet" type="button" hidden>${esc(rL('استيراد المحدّد','Importer la sélection'))}</button></div>`+
+    `<div id="rRes"></div><small id="rSt" style="display:block;font-size:12px;color:#6b7690;line-height:1.7"></small>`;
+  if(raedaList.length)renderRaedaList();
+}
+function renderRaedaList(){
+  const lvl=$('rLvl').value,list=raedaList.filter(c=>lvl==='all'||c.level===lvl);
+  $('rGet').hidden=!list.length;
+  $('rRes').innerHTML=list.map(c=>{const sub=RSUB[c.subject]?rL(RSUB[c.subject][0],RSUB[c.subject][1]):c.subject;
+    return`<label class="chk"><input type="checkbox" class="rck" value="${esc(c.code)}" checked> ${esc(sub)} · ${esc((c.level||'').toUpperCase())} · ${esc(rL('الأسبوع ','S')+c.sem)} · ${esc(rL('الحصة ','Séance ')+c.seance)}</label>`}).join('');
+  rSt(list.length?rL('الحد الأقصى المعتاد: ملفان لخريطتين في ورقة واحدة.','Maximum habituel : deux fichiers pour deux cartes sur une feuille.'):rL('لا توجد حصص مطابقة.','Aucune séance correspondante.'));
+}
+async function raedaCall(params){
+  const {data}=await cloudClient.auth.getSession(),token=data.session?.access_token;
+  if(!token)throw new Error(rL('سجّل الدخول أولاً.','Connectez-vous d\'abord.'));
+  const r=await fetch('/api/raeda-import?'+new URLSearchParams(params),{headers:{Authorization:'Bearer '+token}});
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||('HTTP '+r.status))}
+  return r;
+}
+$('raedaBody').onchange=e=>{if(e.target.id==='rLvl')renderRaedaList()};
+$('raedaBody').onclick=async e=>{
+  const id=e.target.id,b=e.target;
+  if(id==='rList'){
+    b.disabled=true;rSt(rL('جارٍ جلب القائمة…','Récupération de la liste…'));
+    try{raedaList=(await(await raedaCall({action:'list',sem:$('rSem').value,seance:$('rDay').value,subject:$('rSub').value})).json()).courses||[];renderRaedaList()}
+    catch(err){rSt(err.message,1)}finally{b.disabled=false}}
+  if(id==='rGet'){
+    const codes=[...document.querySelectorAll('.rck:checked')].map(x=>x.value);if(!codes.length)return rSt(rL('اختر حصة واحدة على الأقل.','Sélectionnez au moins une séance.'),1);
+    b.disabled=true;const bad=[];let ok=0;
+    for(const [i,code] of codes.entries()){
+      const name=code.toUpperCase().replace(/-/g,'_')+'.pptx';
+      if(files.some(f=>f.name===name)){ok++;continue}
+      rSt(rL('جارٍ الاستيراد ','Import ')+(i+1)+'/'+codes.length+' …');
+      try{const blob=await(await raedaCall({action:'file',course:code})).blob();addF([new File([blob],name,{type:blob.type})]);ok++}
+      catch(err){bad.push(name+' : '+err.message)}}
+    rSt(rL('تم استيراد ','Importé : ')+ok+'/'+codes.length+(bad.length?' — '+bad.join(' | '):''),bad.length>0);b.disabled=false}
+};
 
 
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
