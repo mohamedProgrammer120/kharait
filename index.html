@@ -391,8 +391,8 @@ function raedaUi(){
   $('raedaSum').textContent=rL('استيراد الحصص تلقائيًا من Raeda','Importer automatiquement depuis Raeda');
   $('raedaBody').innerHTML=
     `<small style="display:block;color:#6b7690;font-size:12px;line-height:1.7;margin:6px 0">${esc(rL('اختر الأسبوع والحصة والمادة ثم اجلب القائمة، وسيُضاف كل ملف PPTX مختار إلى ملفات الحصة تلقائيًا.','Choisissez la semaine, la séance et la matière, récupérez la liste : chaque PPTX sélectionné est ajouté automatiquement aux fichiers de la séance.'))}</small>`+
-    `<div class="row"><select id="rSem">${opt(nums.map(n=>['sem'+n,rL('الأسبوع ','Semaine ')+n]),prev.rSem)}</select>`+
-    `<select id="rDay">${opt(nums.map(n=>[String(n),rL('الحصة ','Séance ')+n]),prev.rDay)}</select>`+
+    `<div class="row"><select id="rSem">${opt([['all',rL('كل الأسابيع','Toutes les semaines')],...nums.map(n=>['sem'+n,rL('الأسبوع ','Semaine ')+n])],prev.rSem||'all')}</select>`+
+    `<select id="rDay">${opt([['all',rL('كل الحصص','Toutes les séances')],...nums.map(n=>[String(n),rL('الحصة ','Séance ')+n])],prev.rDay||'all')}</select>`+
     `<select id="rSub">${opt(Object.entries(RSUB).map(([v,t])=>[v,rL(t[0],t[1])]),prev.rSub)}</select>`+
     `<select id="rLvl">${opt([['all',rL('كل المستويات','Tous niveaux')],...['n1','n2','n3','n4','n5','n6','n1-2','n3-4','n5-6'].map(v=>[v,v.toUpperCase()])],prev.rLvl)}</select></div>`+
     `<div class="row"><button id="rList" type="button">${esc(rL('جلب القائمة','Récupérer la liste'))}</button><button id="rGet" type="button" hidden>${esc(rL('استيراد المحدّد','Importer la sélection'))}</button></div>`+
@@ -402,8 +402,9 @@ function raedaUi(){
 function renderRaedaList(){
   const lvl=$('rLvl').value,list=raedaList.filter(c=>lvl==='all'||c.level===lvl);
   $('rGet').hidden=!list.length;
-  $('rRes').innerHTML=list.map(c=>{const sub=RSUB[c.subject]?rL(RSUB[c.subject][0],RSUB[c.subject][1]):c.subject;
-    return`<label class="chk"><input type="checkbox" class="rck" value="${esc(c.code)}" checked> ${esc(sub)} · ${esc((c.level||'').toUpperCase())} · ${esc(rL('الأسبوع ','S')+c.sem)} · ${esc(rL('الحصة ','Séance ')+c.seance)}</label>`}).join('');
+  $('rRes').innerHTML=(list.length?`<label class="chk"><input type="checkbox" id="rAll" checked> <b>${esc(rL('تحديد الكل','Tout sélectionner'))} (${list.length})</b></label>`:'')+
+    list.map(c=>{const sub=RSUB[c.subject]?rL(RSUB[c.subject][0],RSUB[c.subject][1]):c.subject;
+    return`<label class="chk"><input type="checkbox" class="rck" value="${esc(c.code)}" checked> ${esc(sub)} · ${esc((c.level||'').toUpperCase())} · P${esc(c.phase)} · ${esc(rL('الأسبوع ','S')+c.sem)} · ${esc(rL('الحصة ','Séance ')+c.seance)}</label>`}).join('');
   rSt(list.length?rL('الحد الأقصى المعتاد: ملفان لخريطتين في ورقة واحدة.','Maximum habituel : deux fichiers pour deux cartes sur une feuille.'):rL('لا توجد حصص مطابقة.','Aucune séance correspondante.'));
 }
 async function raedaCall(params){
@@ -413,7 +414,9 @@ async function raedaCall(params){
   if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||('HTTP '+r.status))}
   return r;
 }
-$('raedaBody').onchange=e=>{if(e.target.id==='rLvl')renderRaedaList()};
+$('raedaBody').onchange=e=>{
+  if(e.target.id==='rLvl')renderRaedaList();
+  if(e.target.id==='rAll')document.querySelectorAll('.rck').forEach(x=>x.checked=e.target.checked)};
 $('raedaBody').onclick=async e=>{
   const id=e.target.id,b=e.target;
   if(id==='rList'){
