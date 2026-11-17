@@ -1,24 +1,45 @@
-// Service worker بسيط: يخزّن الصفحة للعمل دون اتصال (طلبات Gemini لا تُخزَّن)
-const CACHE = 'khartat-v2';
+// Kharait offline shell cache. Never cache authenticated API responses or user data.
+const CACHE = 'kharait-shell-v3';
+const STATIC_DESTINATIONS = new Set(['document','script','style','image','font']);
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['./'])).then(() => self.skipWaiting()));
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(cache => cache.add('./'))
+      .then(() => self.skipWaiting())
+  );
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
+self.addEventListener('activate', event => {
+  event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', e => {
-  const req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  e.respondWith(
-    fetch(req)
-      .then(res => { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); return res; })
-      .catch(() => caches.match(req).then(r => r || caches.match('./')))
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+  // API responses can contain private account state; Cache API ignores HTTP no-store.
+  if (url.pathname.startsWith('/api/') || url.pathname.includes('/auth/')) return;
+  if (request.cache === 'no-store' || !STATIC_DESTINATIONS.has(request.destination)) return;
+
+  event.respondWith(
+    fetch(request).then(response => {
+      if (!response || !response.ok || response.type === 'opaque' ||
+          /no-store|private/i.test(response.headers.get('Cache-Control') || '')) return response;
+      const copy = response.clone();
+      event.waitUntil(caches.open(CACHE).then(cache => cache.put(request, copy)));
+      return response;
+    }).catch(async () => {
+      const cached = await caches.match(request);
+      if (cached) return cached;
+      if (request.mode === 'navigate') return (await caches.match('./')) || Response.error();
+      return Response.error();
+    })
   );
 });
