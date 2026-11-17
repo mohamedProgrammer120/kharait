@@ -29,7 +29,7 @@ self.addEventListener('fetch', event => {
   if (request.cache === 'no-store' || !STATIC_DESTINATIONS.has(request.destination)) return;
 
   event.respondWith(
-    fetch(request).then(response => {
+    fetch(request).then(async response => {
       if (!response || !response.ok || response.type === 'opaque' ||
           /no-store|private/i.test(response.headers.get('Cache-Control') || '')) return response;
       await caches.open(CACHE).then(cache => cache.put(request, response.clone()));
