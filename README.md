@@ -33,6 +33,15 @@ Dans « Générer une carte » :
 
 Chaque fournisseur facture directement son propre compte. Un abonnement ChatGPT Plus ne comprend pas automatiquement des crédits API OpenAI. La disponibilité des modèles dépend du compte, de la région, du quota et des conditions du fournisseur ; les suggestions intégrées sont des identifiants de départ, pas une garantie d'accès. L'utilisateur peut saisir un autre ID disponible dans son compte.
 
+## Import automatique depuis Raeda
+
+Dans « Générer une carte », la section **« Importer automatiquement depuis Raeda »** permet de choisir semaine, séance, matière et niveau, de récupérer la liste des séances publiées sur https://raeda.alistic.net/ puis d'ajouter les PPTX sélectionnés aux fichiers de la séance, sans téléchargement manuel.
+
+- Route serverless : `api/raeda-import.js` (`action=list` et `action=file`), réservée aux utilisateurs connectés. Elle ne contacte que `raeda.alistic.net`, valide strictement ses paramètres et télécharge un seul fichier à la fois, à la demande.
+- La liste est lue depuis `slides.php?sem=…&seance=…&subject=…&view=table` (liens `download.php?course=…`). Si Raeda change la structure de ses pages, adapter `extractCourseCodes` dans ce fichier.
+- Les fichiers sont renommés `NE_AR_N1_P2_SEM4_S1.pptx` pour que l'indice niveau/phase/semaine/séance soit transmis au modèle.
+- Limite : les réponses des fonctions Vercel sont plafonnées à ~4,5 Mo. Un PPTX plus gros est refusé avec un message clair ; il faut alors le télécharger puis l'ajouter à la main.
+
 ## Sécurité et confidentialité
 
 - Les routes IA vérifient le jeton Supabase côté serveur.
